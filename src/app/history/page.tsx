@@ -21,7 +21,7 @@ export default async function HistoryPage({
     notFound();
   }
 
-  const { email, meals, page, timezone, totalPages } =
+  const { meals, page, timezone, totalPages } =
     await getMealHistory(parsedPage);
   if (page > totalPages && page !== 1) {
     notFound();
@@ -33,8 +33,8 @@ export default async function HistoryPage({
 
   return (
     <main className="min-h-screen bg-muted/30">
-      <AppHeader email={email} />
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <AppHeader />
+      <div className="mx-auto max-w-5xl px-4 py-8 pb-28 sm:px-6 sm:py-12 sm:pb-12">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-primary">Votre journal</p>

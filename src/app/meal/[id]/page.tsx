@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AppHeader } from "@/components/app-header";
 import { DeleteMealButton } from "@/components/meals/delete-meal-button";
 import { getOwnedMeal } from "@/features/meals/queries";
 
@@ -31,12 +32,13 @@ export default async function MealDetailPage({
 
   return (
     <main className="min-h-screen bg-muted/30">
-      <article className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+      <AppHeader />
+      <article className="mx-auto max-w-3xl px-4 py-8 pb-28 sm:px-6 sm:py-12 sm:pb-12">
         <Link
           className="text-sm font-medium text-primary hover:underline"
-          href="/meal/new"
+          href="/history"
         >
-          ← Ajouter un repas
+          ← Historique
         </Link>
         <header className="mb-7 mt-6 flex flex-wrap items-start justify-between gap-4">
           <div>

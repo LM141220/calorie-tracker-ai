@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AppHeader } from "@/components/app-header";
 import { MealEditor } from "@/components/meals/meal-editor";
 import { getOwnedMeal } from "@/features/meals/queries";
 
@@ -18,7 +19,8 @@ export default async function EditMealPage({
 
   return (
     <main className="min-h-screen bg-muted/30">
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+      <AppHeader />
+      <div className="mx-auto max-w-3xl px-4 py-8 pb-28 sm:px-6 sm:py-12 sm:pb-12">
         <Link
           className="text-sm font-medium text-primary hover:underline"
           href={`/meal/${meal.id}`}

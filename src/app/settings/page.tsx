@@ -6,7 +6,7 @@ import { SettingsForm } from "@/components/goals/settings-form";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Objectifs et paramètres",
+  title: "Objectifs",
 };
 
 export default async function SettingsPage() {
@@ -35,15 +35,13 @@ export default async function SettingsPage() {
 
   return (
     <main className="min-h-screen bg-muted/30">
-      <AppHeader email={user.email ?? ""} />
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+      <AppHeader />
+      <div className="mx-auto max-w-3xl px-4 py-8 pb-28 sm:px-6 sm:py-12 sm:pb-12">
         <header className="mb-8">
-          <p className="text-sm font-medium text-primary">Personnalisation</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            Objectifs et paramètres
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Définissez des objectifs qui correspondent à votre quotidien.
+          <h1 className="text-2xl font-semibold tracking-tight">Objectifs</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Définissez votre cible quotidienne. Les autres réglages sont
+            facultatifs.
           </p>
         </header>
 

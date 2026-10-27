@@ -54,80 +54,123 @@ function ProgressMetric({
 }
 
 export default async function DashboardPage() {
-  const { email, goals, summary } = await getDashboardData();
+  const { goals, summary } = await getDashboardData();
   const numberFormat = new Intl.NumberFormat("fr-FR", {
     maximumFractionDigits: 0,
   });
 
   return (
     <main className="min-h-screen bg-muted/30">
-      <AppHeader email={email} />
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-        <header className="flex flex-wrap items-end justify-between gap-4">
+      <AppHeader />
+      <div className="mx-auto max-w-3xl px-4 py-6 pb-28 sm:px-6 sm:py-10 sm:pb-12">
+        <header className="mb-6">
           <div>
-            <p className="text-sm font-medium text-primary">Votre journée</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-              Bonjour, voici votre suivi
-            </h1>
-            <p className="mt-2 text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {new Intl.DateTimeFormat("fr-FR", {
                 dateStyle: "full",
                 timeZone: "UTC",
               }).format(new Date(`${summary.today.date}T12:00:00Z`))}
             </p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+              Aujourd’hui
+            </h1>
           </div>
-          <Link
-            className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            href="/meal/new"
-          >
-            Ajouter un repas
-          </Link>
         </header>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-[1.3fr_0.7fr]">
-          <section className="rounded-2xl border bg-card p-5 sm:p-7">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <div>
-                <h2 className="font-semibold">Calories consommées</h2>
-                <p className="mt-2 text-4xl font-semibold tracking-tight">
-                  {numberFormat.format(summary.today.calories)}
-                  <span className="ml-2 text-lg font-normal text-muted-foreground">
-                    / {numberFormat.format(goals.daily_calories)} kcal
-                  </span>
-                </p>
-              </div>
-              <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                {summary.today.meal_count}{" "}
-                {summary.today.meal_count === 1 ? "repas" : "repas"}
-              </span>
+        <section className="rounded-2xl border bg-card p-5 sm:p-7">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-medium text-muted-foreground">
+                Il vous reste
+              </h2>
+              <p
+                className="mt-2 text-5xl font-semibold tabular-nums tracking-tight"
+                aria-live="polite"
+              >
+                {numberFormat.format(
+                  Math.max(goals.daily_calories - summary.today.calories, 0),
+                )}
+                <span className="ml-2 text-xl font-medium text-muted-foreground">
+                  kcal
+                </span>
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {numberFormat.format(summary.today.calories)} consommées sur{" "}
+                {numberFormat.format(goals.daily_calories)} kcal
+              </p>
             </div>
+            <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+              {summary.today.meal_count}{" "}
+              {summary.today.meal_count === 1 ? "repas" : "repas"}
+            </span>
+          </div>
+          <div
+            aria-label={`Calories consommées : ${numberFormat.format(summary.today.calories)} sur ${numberFormat.format(goals.daily_calories)} kcal`}
+            aria-valuemax={goals.daily_calories}
+            aria-valuemin={0}
+            aria-valuenow={Math.min(
+              summary.today.calories,
+              goals.daily_calories,
+            )}
+            aria-valuetext={
+              summary.today.calories >= goals.daily_calories
+                ? `Objectif dépassé de ${numberFormat.format(summary.today.calories - goals.daily_calories)} kcal`
+                : `${numberFormat.format(goals.daily_calories - summary.today.calories)} kcal restantes`
+            }
+            className="mt-6 h-3 overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+          >
             <div
-              aria-label={`Calories : ${Math.min(100, Math.round((summary.today.calories / Math.max(goals.daily_calories, 1)) * 100))} % de l’objectif`}
-              aria-valuemax={100}
-              aria-valuemin={0}
-              aria-valuenow={Math.min(
-                100,
-                Math.round(
-                  (summary.today.calories / Math.max(goals.daily_calories, 1)) *
-                    100,
-                ),
-              )}
-              className="mt-6 h-3 overflow-hidden rounded-full bg-muted"
-              role="progressbar"
-            >
-              <div
-                className="h-full rounded-full bg-primary transition-[width]"
-                style={{
-                  width: `${Math.min(100, Math.round((summary.today.calories / Math.max(goals.daily_calories, 1)) * 100))}%`,
-                }}
-              />
-            </div>
+              className="h-full rounded-full bg-primary transition-[width]"
+              style={{
+                width: `${Math.min(100, Math.round((summary.today.calories / Math.max(goals.daily_calories, 1)) * 100))}%`,
+              }}
+            />
+          </div>
+          {summary.today.calories >= goals.daily_calories ? (
             <p className="mt-2 text-sm text-muted-foreground">
-              {summary.today.calories >= goals.daily_calories
-                ? `${numberFormat.format(summary.today.calories - goals.daily_calories)} kcal au-dessus de l’objectif`
-                : `${numberFormat.format(goals.daily_calories - summary.today.calories)} kcal restantes`}
+              Objectif dépassé de{" "}
+              {numberFormat.format(
+                summary.today.calories - goals.daily_calories,
+              )}{" "}
+              kcal
             </p>
-            <div className="mt-8 space-y-5">
+          ) : null}
+          <Link
+            className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-primary px-6 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            href="/meal/new"
+          >
+            + Ajouter un repas
+          </Link>
+        </section>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <Link
+            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-primary transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href="/history"
+          >
+            Voir l’historique
+          </Link>
+          <Link
+            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href="/settings"
+          >
+            Modifier l’objectif
+          </Link>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <details className="group rounded-2xl border bg-card">
+            <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 font-medium [&::-webkit-details-marker]:hidden">
+              <span>Voir mes macros</span>
+              <span
+                aria-hidden="true"
+                className="text-muted-foreground transition-transform group-open:rotate-180"
+              >
+                ↓
+              </span>
+            </summary>
+            <div className="space-y-5 border-t px-5 py-5">
               <ProgressMetric
                 current={summary.today.protein}
                 label="Protéines"
@@ -147,54 +190,43 @@ export default async function DashboardPage() {
                 unit="g"
               />
             </div>
-          </section>
+          </details>
 
-          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <article className="rounded-2xl border bg-card p-5">
-              <p className="text-sm text-muted-foreground">
-                Moyenne des 7 derniers jours
-              </p>
-              <p className="mt-2 text-3xl font-semibold">
-                {numberFormat.format(summary.weekly_average)}
-                <span className="ml-2 text-base font-normal text-muted-foreground">
-                  kcal/jour
-                </span>
-              </p>
-            </article>
-            <article className="rounded-2xl border bg-card p-5">
-              <p className="text-sm text-muted-foreground">
-                Moyenne du mois à date
-              </p>
-              <p className="mt-2 text-3xl font-semibold">
-                {numberFormat.format(summary.monthly_average)}
-                <span className="ml-2 text-base font-normal text-muted-foreground">
-                  kcal/jour
-                </span>
-              </p>
-            </article>
-          </section>
-
-          <div className="lg:col-span-2">
-            <WeeklyChart
-              calorieTarget={goals.daily_calories}
-              days={summary.week}
-            />
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-input bg-background px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-            href="/history"
-          >
-            Voir l’historique
-          </Link>
-          <Link
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-input bg-background px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-            href="/settings"
-          >
-            Modifier mes objectifs
-          </Link>
+          <details className="group rounded-2xl border bg-card">
+            <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 font-medium [&::-webkit-details-marker]:hidden">
+              <span>Voir mes tendances</span>
+              <span
+                aria-hidden="true"
+                className="text-muted-foreground transition-transform group-open:rotate-180"
+              >
+                ↓
+              </span>
+            </summary>
+            <div className="space-y-4 border-t px-4 py-5 sm:px-5">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <article className="rounded-xl bg-muted/60 p-4">
+                  <p className="text-sm text-muted-foreground">
+                    Moyenne sur 7 jours
+                  </p>
+                  <p className="mt-1 text-xl font-semibold">
+                    {numberFormat.format(summary.weekly_average)} kcal/jour
+                  </p>
+                </article>
+                <article className="rounded-xl bg-muted/60 p-4">
+                  <p className="text-sm text-muted-foreground">
+                    Moyenne ce mois-ci
+                  </p>
+                  <p className="mt-1 text-xl font-semibold">
+                    {numberFormat.format(summary.monthly_average)} kcal/jour
+                  </p>
+                </article>
+              </div>
+              <WeeklyChart
+                calorieTarget={goals.daily_calories}
+                days={summary.week}
+              />
+            </div>
+          </details>
         </div>
       </div>
     </main>

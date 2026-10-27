@@ -12,15 +12,7 @@ import {
 } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Camera,
-  FileText,
-  LoaderCircle,
-  Plus,
-  Search,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Camera, LoaderCircle, Plus, Search, Trash2, X } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -99,7 +91,8 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const barcodeVideoRef = useRef<HTMLVideoElement>(null);
-  const [mode, setMode] = useState<"photo" | "text">("photo");
+  const foodSearchRef = useRef<HTMLElement>(null);
+  const foodSearchInputRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState("");
   const [previewUrl, setPreviewUrl] = useState(
     initialMeal?.imagePreviewUrl ?? null,
@@ -150,6 +143,16 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
       }
     };
   }, [previewUrl]);
+
+  useEffect(() => {
+    if (isFoodSearchOpen) {
+      foodSearchRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      foodSearchInputRef.current?.focus({ preventScroll: true });
+    }
+  }, [isFoodSearchOpen]);
 
   useEffect(() => {
     if (!isBarcodeScannerOpen) {
@@ -494,40 +497,52 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
   return (
     <div className="space-y-6">
       {!initialMeal ? (
-        <div
-          className="grid grid-cols-2 rounded-xl bg-muted p-1"
-          aria-label="Mode d’ajout du repas"
-          role="group"
-        >
-          <button
-            aria-pressed={mode === "photo"}
-            className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium transition ${mode === "photo" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}
-            onClick={() => setMode("photo")}
-            type="button"
-          >
-            <Camera aria-hidden="true" className="size-4" />
-            Photo
-          </button>
-          <button
-            aria-pressed={mode === "text"}
-            className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium transition ${mode === "text" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}
-            onClick={() => setMode("text")}
-            type="button"
-          >
-            <FileText aria-hidden="true" className="size-4" />
-            Texte
-          </button>
-        </div>
-      ) : null}
-
-      {!initialMeal && mode === "photo" ? (
         <section className="space-y-4 rounded-2xl border bg-card p-5 sm:p-6">
           <div>
-            <h2 className="font-semibold">Ajouter une photo</h2>
+            <label className="font-semibold" htmlFor="meal-description">
+              Qu’avez-vous mangé ?
+            </label>
             <p className="mt-1 text-sm text-muted-foreground">
-              JPEG, PNG ou WebP — 10 Mo maximum. La photo est stockée dans votre
-              espace privé.
+              Décrivez le repas, les quantités si vous les connaissez.
             </p>
+          </div>
+          <textarea
+            className="min-h-24 w-full resize-y rounded-lg border bg-background p-3 text-base outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+            id="meal-description"
+            maxLength={5000}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="Ex. : 150 g de riz, 200 g de poulet et une pomme"
+            value={description}
+          />
+          <Button
+            className="w-full sm:w-auto"
+            disabled={isAnalyzing || description.trim().length < 3}
+            onClick={() => void analyzeText()}
+            size="lg"
+            type="button"
+          >
+            {isAnalyzing ? "Analyse en cours…" : "Analyser le repas"}
+          </Button>
+
+          <div className="flex flex-wrap gap-2 border-t pt-4">
+            <Button
+              className="min-h-11"
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+              variant="outline"
+            >
+              <Camera aria-hidden="true" className="mr-2 size-4" />
+              {previewUrl ? "Changer la photo" : "Ajouter une photo"}
+            </Button>
+            <Button
+              className="min-h-11"
+              onClick={() => setIsFoodSearchOpen(true)}
+              type="button"
+              variant="ghost"
+            >
+              <Search aria-hidden="true" className="mr-2 size-4" />
+              Chercher un aliment
+            </Button>
           </div>
           {previewUrl ? (
             <div className="relative aspect-[4/3] max-h-80 overflow-hidden rounded-xl bg-muted">
@@ -541,28 +556,16 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
               />
             </div>
           ) : null}
-          <div className="flex flex-wrap gap-3">
+          {uploadedPath ? (
             <Button
-              onClick={() => fileInputRef.current?.click()}
+              disabled={isAnalyzing}
+              onClick={() => void analyzeImagePath(uploadedPath)}
               type="button"
-              variant="outline"
+              variant="secondary"
             >
-              <Camera aria-hidden="true" className="mr-2 size-4" />
-              {previewUrl
-                ? "Choisir une autre photo"
-                : "Prendre ou choisir une photo"}
+              {isAnalyzing ? "Analyse…" : "Relancer l’analyse"}
             </Button>
-            {uploadedPath ? (
-              <Button
-                disabled={isAnalyzing}
-                onClick={() => void analyzeImagePath(uploadedPath)}
-                type="button"
-                variant="secondary"
-              >
-                {isAnalyzing ? "Analyse…" : "Relancer l’analyse"}
-              </Button>
-            ) : null}
-          </div>
+          ) : null}
           <input
             ref={fileInputRef}
             accept={allowedMimeTypes.join(",")}
@@ -572,35 +575,6 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
             onChange={(event) => void onImageSelected(event.target.files?.[0])}
             type="file"
           />
-        </section>
-      ) : null}
-
-      {!initialMeal && mode === "text" ? (
-        <section className="space-y-4 rounded-2xl border bg-card p-5 sm:p-6">
-          <div>
-            <h2 className="font-semibold">Décrire le repas</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Indiquez les aliments et, si possible, les quantités.
-            </p>
-          </div>
-          <label className="sr-only" htmlFor="meal-description">
-            Description du repas
-          </label>
-          <textarea
-            className="min-h-32 w-full resize-y rounded-lg border bg-background p-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
-            id="meal-description"
-            maxLength={5000}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="Ex. : 150 g de riz, 200 g de poulet et une pomme"
-            value={description}
-          />
-          <Button
-            disabled={isAnalyzing || description.trim().length < 3}
-            onClick={() => void analyzeText()}
-            type="button"
-          >
-            {isAnalyzing ? "Analyse en cours…" : "Analyser le repas"}
-          </Button>
         </section>
       ) : null}
 
@@ -804,6 +778,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
             <section
               aria-label="Rechercher un aliment"
               className="space-y-4 rounded-xl border bg-muted/40 p-4"
+              ref={foodSearchRef}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -887,6 +862,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
                     }
                   }}
                   placeholder="Nom, EAN ou UPC"
+                  ref={foodSearchInputRef}
                   value={foodSearchQuery}
                 />
                 <Button
@@ -1018,7 +994,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
         <div className="flex flex-col-reverse justify-between gap-3 sm:flex-row">
           <Link
             className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            href={initialMeal ? `/meal/${initialMeal.id}` : "/meal/new"}
+            href={initialMeal ? `/meal/${initialMeal.id}` : "/dashboard"}
           >
             Annuler
           </Link>
