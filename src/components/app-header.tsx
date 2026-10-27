@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { logoutAction } from "@/features/auth/actions";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 
 type AppHeaderProps = {
   email: string;
@@ -34,17 +35,11 @@ export function AppHeader({ email }: AppHeaderProps) {
           ))}
         </nav>
         <div className="flex items-center gap-3">
+          <InstallPrompt />
           <span className="hidden max-w-48 truncate text-sm text-muted-foreground sm:inline">
             {email}
           </span>
-          <form action={logoutAction}>
-            <button
-              className="rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              type="submit"
-            >
-              Déconnexion
-            </button>
-          </form>
+          <LogoutButton />
         </div>
       </div>
     </header>
