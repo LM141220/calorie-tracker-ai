@@ -16,7 +16,7 @@ export default async function MealDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { meal, items, imagePreviewUrl } = await getOwnedMeal(id);
+  const { meal, items, imagePreviewUrl, timezone } = await getOwnedMeal(id);
 
   if (items.length === 0) {
     notFound();
@@ -26,6 +26,7 @@ export default async function MealDetailPage({
   const date = new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "long",
     timeStyle: "short",
+    timeZone: timezone,
   }).format(new Date(meal.created_at));
 
   return (

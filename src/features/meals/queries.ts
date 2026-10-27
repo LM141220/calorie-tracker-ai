@@ -35,15 +35,27 @@ export async function getOwnedMeal(mealId: string) {
     notFound();
   }
 
-  const { data: items, error: itemsError } = await supabase
-    .from("meal_items")
-    .select("id, food_name, weight_g, calories, protein, carbs, fat")
-    .eq("meal_id", mealId)
-    .order("created_at", { ascending: true });
+  const [itemsResult, goalsResult] = await Promise.all([
+    supabase
+      .from("meal_items")
+      .select("id, food_name, weight_g, calories, protein, carbs, fat")
+      .eq("meal_id", mealId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("user_goals")
+      .select("timezone")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+  const { data: items, error: itemsError } = itemsResult;
 
   if (itemsError) {
     console.error("Meal item query failed.", itemsError);
     throw new Error("Impossible de charger les aliments de ce repas.");
+  }
+  if (goalsResult.error) {
+    console.error("Meal timezone query failed.", goalsResult.error);
+    throw new Error("Impossible de charger vos paramètres régionaux.");
   }
 
   let imagePreviewUrl: string | null = null;
@@ -63,6 +75,7 @@ export async function getOwnedMeal(mealId: string) {
   return {
     meal,
     items,
+    timezone: goalsResult.data?.timezone ?? "UTC",
     imagePreviewUrl,
   };
 }

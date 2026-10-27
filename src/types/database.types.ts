@@ -73,6 +73,7 @@ export type Database = {
           activity_level: ActivityLevel | null;
           goal_type: NutritionGoal | null;
           daily_calories_is_custom: boolean;
+          timezone: string;
           created_at: string;
           updated_at: string;
         },
@@ -90,6 +91,7 @@ export type Database = {
           activity_level?: ActivityLevel | null;
           goal_type?: NutritionGoal | null;
           daily_calories_is_custom?: boolean;
+          timezone?: string;
           created_at?: string;
           updated_at?: string;
         },
@@ -107,6 +109,7 @@ export type Database = {
           activity_level?: ActivityLevel | null;
           goal_type?: NutritionGoal | null;
           daily_calories_is_custom?: boolean;
+          timezone?: string;
           created_at?: string;
           updated_at?: string;
         },
@@ -258,6 +261,10 @@ export type Database = {
           p_items: Json;
         };
         Returns: string;
+      };
+      get_dashboard_summary: {
+        Args: Record<string, never>;
+        Returns: Json;
       };
     };
     Enums: {
