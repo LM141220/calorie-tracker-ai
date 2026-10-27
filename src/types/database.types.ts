@@ -248,7 +248,18 @@ export type Database = {
       >;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      save_meal: {
+        Args: {
+          p_meal_id: string | null;
+          p_meal_name: string;
+          p_notes: string | null;
+          p_image_path: string | null;
+          p_items: Json;
+        };
+        Returns: string;
+      };
+    };
     Enums: {
       profile_sex: ProfileSex;
       activity_level: ActivityLevel;
