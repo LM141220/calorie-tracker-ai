@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   AIConfigurationError,
   AIProviderRequestError,
@@ -18,6 +20,16 @@ import type { AIProvider } from "@/services/ai/provider";
 const OPENROUTER_MODEL = "google/gemini-2.0-flash-001";
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const REQUEST_TIMEOUT_MS = 30_000;
+
+type OpenRouterMessage = {
+  role: "user";
+  content:
+    | string
+    | Array<
+        | { type: "text"; text: string }
+        | { type: "image_url"; image_url: { url: string } }
+      >;
+};
 
 export class OpenRouterProvider implements AIProvider {
   constructor(private readonly apiKey: string) {
@@ -58,7 +70,7 @@ export class OpenRouterProvider implements AIProvider {
     return parseMealAnalysis(extractOpenRouterText(payload), "OpenRouter");
   }
 
-  private async createCompletion(messages: Array<Record<string, unknown>>) {
+  private async createCompletion(messages: OpenRouterMessage[]) {
     let response: Response;
 
     try {
@@ -74,6 +86,7 @@ export class OpenRouterProvider implements AIProvider {
           messages,
           response_format: { type: "json_object" },
           temperature: 0.2,
+          max_tokens: 2000,
         }),
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         cache: "no-store",

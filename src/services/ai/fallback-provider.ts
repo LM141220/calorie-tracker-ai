@@ -1,6 +1,11 @@
 import { AIFallbackError, normalizeAIError } from "@/services/ai/errors";
 import type { AIProvider } from "@/services/ai/provider";
-import type { MealAnalysis, MealImageInput } from "@/services/ai/schema";
+import {
+  mealImageSchema,
+  mealTextSchema,
+  type MealAnalysis,
+  type MealImageInput,
+} from "@/services/ai/schema";
 
 export class FallbackAIProvider implements AIProvider {
   constructor(
@@ -9,16 +14,18 @@ export class FallbackAIProvider implements AIProvider {
   ) {}
 
   async analyzeMealImage(image: MealImageInput): Promise<MealAnalysis> {
+    const validatedImage = mealImageSchema.parse(image);
     return this.runWithFallback(
-      () => this.primary.analyzeMealImage(image),
-      () => this.fallback?.analyzeMealImage(image),
+      () => this.primary.analyzeMealImage(validatedImage),
+      () => this.fallback?.analyzeMealImage(validatedImage),
     );
   }
 
   async analyzeMealText(description: string): Promise<MealAnalysis> {
+    const validatedDescription = mealTextSchema.parse(description);
     return this.runWithFallback(
-      () => this.primary.analyzeMealText(description),
-      () => this.fallback?.analyzeMealText(description),
+      () => this.primary.analyzeMealText(validatedDescription),
+      () => this.fallback?.analyzeMealText(validatedDescription),
     );
   }
 

@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   AIConfigurationError,
   AIProviderRequestError,
@@ -16,6 +18,10 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models";
 const REQUEST_TIMEOUT_MS = 30_000;
+
+type GeminiPart =
+  | { text: string }
+  | { inline_data: { mime_type: MealImageInput["mimeType"]; data: string } };
 
 export class GeminiProvider implements AIProvider {
   constructor(private readonly apiKey: string) {
@@ -48,20 +54,24 @@ export class GeminiProvider implements AIProvider {
     return parseMealAnalysis(extractGeminiText(payload), "Gemini");
   }
 
-  private async generateContent(parts: Array<Record<string, unknown>>) {
+  private async generateContent(parts: GeminiPart[]) {
     let response: Response;
 
     try {
       response = await fetch(
-        `${GEMINI_API_URL}/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(this.apiKey)}`,
+        `${GEMINI_API_URL}/${GEMINI_MODEL}:generateContent`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": this.apiKey,
+          },
           body: JSON.stringify({
             contents: [{ parts }],
             generationConfig: {
               responseMimeType: "application/json",
               temperature: 0.2,
+              maxOutputTokens: 2000,
             },
           }),
           signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),

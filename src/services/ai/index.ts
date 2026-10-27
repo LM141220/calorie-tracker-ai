@@ -1,3 +1,5 @@
+import "server-only";
+
 import { AIConfigurationError } from "@/services/ai/errors";
 import { FallbackAIProvider } from "@/services/ai/fallback-provider";
 import { GeminiProvider } from "@/services/ai/gemini-provider";
