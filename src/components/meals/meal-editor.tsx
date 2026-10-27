@@ -3,16 +3,32 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import {
+  type KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera, FileText, Plus, Trash2 } from "lucide-react";
+import {
+  Camera,
+  FileText,
+  LoaderCircle,
+  Plus,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { saveMealAction } from "@/features/meals/actions";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { mealAnalysisSchema } from "@/services/ai/schema";
+import { searchOpenFoodFacts } from "@/services/foods/open-food-facts";
+import type { FoodSearchResult } from "@/validators/foods";
 import { saveMealInputSchema, type SaveMealInput } from "@/validators/meals";
 
 const IMAGE_BUCKET = "meal-images";
@@ -30,6 +46,21 @@ type MealEditorProps = {
     items: SaveMealInput["items"];
   };
 };
+
+type DetectedBarcode = { rawValue: string };
+type BarcodeDetectorInstance = {
+  detect: (video: HTMLVideoElement) => Promise<DetectedBarcode[]>;
+};
+type BarcodeDetectorConstructor = new (options: {
+  formats: string[];
+}) => BarcodeDetectorInstance;
+
+function getBarcodeDetector(): BarcodeDetectorConstructor | null {
+  const browserWindow = window as Window & {
+    BarcodeDetector?: BarcodeDetectorConstructor;
+  };
+  return browserWindow.BarcodeDetector ?? null;
+}
 
 function getImageExtension(mimeType: (typeof allowedMimeTypes)[number]) {
   switch (mimeType) {
@@ -67,6 +98,7 @@ async function getApiError(response: Response): Promise<string> {
 export function MealEditor({ initialMeal }: MealEditorProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const barcodeVideoRef = useRef<HTMLVideoElement>(null);
   const [mode, setMode] = useState<"photo" | "text">("photo");
   const [description, setDescription] = useState("");
   const [previewUrl, setPreviewUrl] = useState(
@@ -79,6 +111,15 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
   const [noticeIsError, setNoticeIsError] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isImageAnalysisPending, setIsImageAnalysisPending] = useState(false);
+  const [isFoodSearchOpen, setIsFoodSearchOpen] = useState(false);
+  const [foodSearchQuery, setFoodSearchQuery] = useState("");
+  const [foodSearchResults, setFoodSearchResults] = useState<
+    FoodSearchResult[]
+  >([]);
+  const [foodSearchError, setFoodSearchError] = useState("");
+  const [isSearchingFoods, setIsSearchingFoods] = useState(false);
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
+  const [barcodeScannerError, setBarcodeScannerError] = useState("");
   const [isSaving, startSaving] = useTransition();
 
   const form = useForm<SaveMealInput>({
@@ -109,6 +150,93 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
       }
     };
   }, [previewUrl]);
+
+  useEffect(() => {
+    if (!isBarcodeScannerOpen) {
+      return;
+    }
+
+    let isActive = true;
+    let animationFrame = 0;
+    let mediaStream: MediaStream | null = null;
+    const videoElement = barcodeVideoRef.current;
+
+    async function startBarcodeScanner() {
+      const Detector = getBarcodeDetector();
+      if (!Detector || !videoElement || !navigator.mediaDevices?.getUserMedia) {
+        setBarcodeScannerError(
+          "Le scan par caméra n’est pas pris en charge par ce navigateur. Saisissez le code-barres ou utilisez un lecteur connecté.",
+        );
+        return;
+      }
+
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: { ideal: "environment" } },
+        });
+        if (!isActive) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        videoElement.srcObject = mediaStream;
+        await videoElement.play();
+        const detector = new Detector({
+          formats: ["ean_13", "ean_8", "upc_a", "upc_e"],
+        });
+
+        const scanFrame = async () => {
+          if (!isActive) {
+            return;
+          }
+
+          try {
+            const [barcode] = await detector.detect(videoElement);
+            if (barcode) {
+              const normalizedBarcode = barcode.rawValue.replace(/\D/g, "");
+              if (/^\d{8,14}$/.test(normalizedBarcode)) {
+                setFoodSearchQuery(normalizedBarcode);
+                setBarcodeScannerError("");
+                setIsBarcodeScannerOpen(false);
+                return;
+              }
+            }
+          } catch (error: unknown) {
+            console.error("Barcode scanning failed.", error);
+            setBarcodeScannerError(
+              "Impossible de lire ce code. Réessayez ou saisissez-le manuellement.",
+            );
+            setIsBarcodeScannerOpen(false);
+            return;
+          }
+
+          animationFrame = window.requestAnimationFrame(() => {
+            void scanFrame();
+          });
+        };
+
+        void scanFrame();
+      } catch (error: unknown) {
+        console.error("Barcode camera could not be started.", error);
+        setBarcodeScannerError(
+          "Impossible d’accéder à la caméra. Vérifiez son autorisation ou saisissez le code-barres.",
+        );
+        setIsBarcodeScannerOpen(false);
+      }
+    }
+
+    void startBarcodeScanner();
+
+    return () => {
+      isActive = false;
+      window.cancelAnimationFrame(animationFrame);
+      mediaStream?.getTracks().forEach((track) => track.stop());
+      if (videoElement) {
+        videoElement.srcObject = null;
+      }
+    };
+  }, [isBarcodeScannerOpen]);
 
   async function analyzeImagePath(imagePath: string) {
     setNotice("");
@@ -312,6 +440,55 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
         router.refresh();
       }
     });
+  }
+
+  async function searchFoods() {
+    const query = foodSearchQuery.trim();
+    if (query.length < 2) {
+      setFoodSearchError("Saisissez au moins 2 caractères.");
+      return;
+    }
+
+    setIsSearchingFoods(true);
+    setFoodSearchError("");
+    setFoodSearchResults([]);
+
+    try {
+      const results = await searchOpenFoodFacts(query);
+      setFoodSearchResults(results);
+      if (results.length === 0) {
+        setFoodSearchError(
+          "Aucun aliment avec des valeurs nutritionnelles complètes trouvé. Essayez un autre terme ou ajoutez-le manuellement.",
+        );
+      }
+    } catch (error: unknown) {
+      setFoodSearchError(
+        error instanceof Error
+          ? error.message
+          : "La recherche a échoué. Réessayez.",
+      );
+    } finally {
+      setIsSearchingFoods(false);
+    }
+  }
+
+  function addFoodSearchResult(food: FoodSearchResult) {
+    append({
+      food_name: food.name,
+      weight_g: 100,
+      calories: food.calories_per_100g,
+      protein: food.protein_per_100g,
+      carbs: food.carbs_per_100g,
+      fat: food.fat_per_100g,
+    });
+    setIsFoodSearchOpen(false);
+    setFoodSearchQuery("");
+    setFoodSearchResults([]);
+    setFoodSearchError("");
+    setNotice(
+      `${food.name} ajouté avec des valeurs nutritionnelles pour 100 g. Vous pouvez ajuster la portion.`,
+    );
+    setNoticeIsError(false);
   }
 
   return (
@@ -623,25 +800,219 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
             ))}
           </div>
 
-          <Button
-            className="gap-2"
-            disabled={fields.length >= 50}
-            onClick={() =>
-              append({
-                food_name: "",
-                weight_g: 0,
-                calories: 0,
-                protein: 0,
-                carbs: 0,
-                fat: 0,
-              })
-            }
-            type="button"
-            variant="outline"
-          >
-            <Plus aria-hidden="true" className="size-4" />
-            Ajouter un aliment
-          </Button>
+          {isFoodSearchOpen ? (
+            <section
+              aria-label="Rechercher un aliment"
+              className="space-y-4 rounded-xl border bg-muted/40 p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h4 className="font-medium">Rechercher un aliment</h4>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Recherchez par nom ou code-barres. Les valeurs sont
+                    indiquées pour 100 g.
+                  </p>
+                </div>
+                <Button
+                  aria-label="Fermer la recherche"
+                  onClick={() => setIsFoodSearchOpen(false)}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                >
+                  <X aria-hidden="true" className="size-4" />
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => {
+                    setBarcodeScannerError("");
+                    setIsBarcodeScannerOpen((open) => !open);
+                  }}
+                  type="button"
+                  variant="outline"
+                >
+                  <Camera aria-hidden="true" className="mr-2 size-4" />
+                  {isBarcodeScannerOpen
+                    ? "Arrêter le scan"
+                    : "Scanner avec la caméra"}
+                </Button>
+                <p className="self-center text-xs text-muted-foreground">
+                  Un lecteur de code-barres connecté fonctionne aussi dans le
+                  champ de recherche.
+                </p>
+              </div>
+
+              {isBarcodeScannerOpen ? (
+                <div className="space-y-2">
+                  <video
+                    aria-label="Aperçu de la caméra pour scanner le code-barres"
+                    autoPlay
+                    className="max-h-64 w-full rounded-lg bg-black object-contain"
+                    muted
+                    playsInline
+                    ref={barcodeVideoRef}
+                  />
+                  <p className="text-sm text-muted-foreground" role="status">
+                    Placez le code-barres dans le champ de la caméra.
+                  </p>
+                </div>
+              ) : null}
+
+              {barcodeScannerError ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  {barcodeScannerError}
+                </p>
+              ) : null}
+
+              <div className="flex gap-2" role="search">
+                <label className="sr-only" htmlFor="food-search">
+                  Nom de l’aliment ou code-barres
+                </label>
+                <input
+                  autoComplete="off"
+                  className="h-10 min-w-0 flex-1 rounded-lg border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  id="food-search"
+                  inputMode="search"
+                  maxLength={80}
+                  onChange={(event) => setFoodSearchQuery(event.target.value)}
+                  onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+                    if (
+                      event.key === "Enter" &&
+                      !event.nativeEvent.isComposing
+                    ) {
+                      event.preventDefault();
+                      void searchFoods();
+                    }
+                  }}
+                  placeholder="Nom, EAN ou UPC"
+                  value={foodSearchQuery}
+                />
+                <Button
+                  disabled={
+                    isSearchingFoods || foodSearchQuery.trim().length < 2
+                  }
+                  onClick={() => void searchFoods()}
+                  type="button"
+                >
+                  {isSearchingFoods ? (
+                    <LoaderCircle
+                      aria-hidden="true"
+                      className="size-4 animate-spin"
+                    />
+                  ) : (
+                    <Search aria-hidden="true" className="size-4" />
+                  )}
+                  <span className="sr-only sm:not-sr-only sm:ml-2">
+                    Rechercher
+                  </span>
+                </Button>
+              </div>
+
+              {foodSearchError ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  {foodSearchError}
+                </p>
+              ) : null}
+
+              {foodSearchResults.length > 0 ? (
+                <ul aria-label="Résultats de recherche" className="space-y-2">
+                  {foodSearchResults.map((food, index) => (
+                    <li key={`${food.name}-${food.brand}-${index}`}>
+                      <button
+                        className="flex w-full items-center gap-3 rounded-lg border bg-card p-3 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        disabled={fields.length >= 50}
+                        onClick={() => addFoodSearchResult(food)}
+                        type="button"
+                      >
+                        {food.image_url ? (
+                          <span className="relative size-16 shrink-0 overflow-hidden rounded-md bg-muted">
+                            <Image
+                              alt={`Photo du produit ${food.name}`}
+                              className="object-contain"
+                              fill
+                              sizes="64px"
+                              src={food.image_url}
+                              unoptimized
+                            />
+                          </span>
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="flex size-16 shrink-0 items-center justify-center rounded-md bg-muted text-xs text-muted-foreground"
+                          >
+                            Image indisponible
+                          </span>
+                        )}
+                        <span className="min-w-0">
+                          <span className="block font-medium">{food.name}</span>
+                          {food.brand ? (
+                            <span className="mt-0.5 block text-xs text-muted-foreground">
+                              {food.brand}
+                            </span>
+                          ) : null}
+                          <span className="mt-2 block text-xs text-muted-foreground">
+                            {Math.round(food.calories_per_100g)} kcal · P{" "}
+                            {food.protein_per_100g} g · G {food.carbs_per_100g}{" "}
+                            g · L {food.fat_per_100g} g / 100 g
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              <p className="text-xs text-muted-foreground">
+                Données nutritionnelles fournies par{" "}
+                <a
+                  className="underline underline-offset-2"
+                  href="https://world.openfoodfacts.org/"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Open Food Facts
+                </a>{" "}
+                (ODbL). Vérifiez les valeurs avant l’enregistrement.
+              </p>
+            </section>
+          ) : null}
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              className="gap-2"
+              disabled={fields.length >= 50}
+              onClick={() => {
+                setIsFoodSearchOpen((open) => !open);
+                setFoodSearchError("");
+              }}
+              type="button"
+              variant="outline"
+            >
+              <Search aria-hidden="true" className="size-4" />
+              Rechercher un aliment
+            </Button>
+            <Button
+              className="gap-2"
+              disabled={fields.length >= 50}
+              onClick={() =>
+                append({
+                  food_name: "",
+                  weight_g: 0,
+                  calories: 0,
+                  protein: 0,
+                  carbs: 0,
+                  fat: 0,
+                })
+              }
+              type="button"
+              variant="ghost"
+            >
+              <Plus aria-hidden="true" className="size-4" />
+              Saisie manuelle
+            </Button>
+          </div>
         </section>
 
         <div className="flex flex-col-reverse justify-between gap-3 sm:flex-row">

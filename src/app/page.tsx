@@ -1,7 +1,25 @@
 import { ArrowRight, Camera, ChartNoAxesCombined, Leaf } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export default async function HomePage() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error && error.name !== "AuthSessionMissingError") {
+    console.error("Unable to check session on the home page.", error);
+    throw new Error("Impossible de vérifier votre session.");
+  }
+
+  if (user) {
+    redirect("/dashboard");
+  }
+
   return (
     <main className="min-h-screen">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-6 sm:px-10">

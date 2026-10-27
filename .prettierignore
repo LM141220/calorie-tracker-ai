@@ -3,6 +3,9 @@ node_modules
 out
 build
 coverage
+public/sw.js
+public/workbox-*.js
+public/fallback-*.js
 package-lock.json
 pnpm-lock.yaml
 yarn.lock

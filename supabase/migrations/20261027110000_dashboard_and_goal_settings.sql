@@ -347,6 +347,7 @@ as $$
         from current_month
         left join meal_totals
           on meal_totals.local_date between current_month.first_day and current_month.last_day
+        group by current_month.first_day, current_month.last_day
       ),
     'week',
       (
