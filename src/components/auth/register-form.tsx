@@ -50,7 +50,7 @@ export function RegisterForm() {
           </label>
           <input
             autoComplete="email"
-            className="h-11 w-full rounded-lg border bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+            className="field-premium"
             id="email"
             type="email"
             {...register("email")}
@@ -72,7 +72,7 @@ export function RegisterForm() {
           </label>
           <input
             autoComplete="new-password"
-            className="h-11 w-full rounded-lg border bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+            className="field-premium"
             id="password"
             type="password"
             {...register("password")}
@@ -94,7 +94,7 @@ export function RegisterForm() {
           </label>
           <input
             autoComplete="new-password"
-            className="h-11 w-full rounded-lg border bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+            className="field-premium"
             id="confirmPassword"
             type="password"
             {...register("confirmPassword")}

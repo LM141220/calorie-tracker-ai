@@ -5,20 +5,20 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Calorie Tracker AI",
-    template: "%s | Calorie Tracker AI",
+    default: "Lumo",
+    template: "%s | Lumo",
   },
-  description:
-    "Suivez vos repas et vos objectifs nutritionnels avec Calorie Tracker AI.",
-  applicationName: "Calorie Tracker AI",
+  description: "Suis simplement tes repas et ton objectif quotidien avec Lumo.",
+  applicationName: "Lumo",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Calorie Tracker",
+    title: "Lumo",
   },
   icons: {
     icon: [
+      { url: "/icons/lumo-logo.png", sizes: "512x512", type: "image/png" },
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#22c55e",
+  themeColor: "#24563d",
 };
 
 export default function RootLayout({

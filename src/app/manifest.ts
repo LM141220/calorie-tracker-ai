@@ -3,18 +3,24 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Calorie Tracker AI",
-    short_name: "Calorie Tracker",
-    description: "Suivez simplement vos repas et vos objectifs nutritionnels.",
+    name: "Lumo",
+    short_name: "Lumo",
+    description: "Suis simplement tes repas et ton objectif quotidien.",
     start_url: "/dashboard",
     scope: "/",
     display: "standalone",
     display_override: ["standalone", "minimal-ui"],
-    background_color: "#f7faf8",
-    theme_color: "#22c55e",
+    background_color: "#f6f7f2",
+    theme_color: "#24563d",
     orientation: "portrait-primary",
     categories: ["health", "food"],
     icons: [
+      {
+        src: "/icons/lumo-logo.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
       {
         src: "/icons/icon-192.png",
         sizes: "192x192",

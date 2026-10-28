@@ -13,8 +13,7 @@ type SettingsFormProps = {
   initialValues: Omit<GoalSettingsInput, "timezone"> & { timezone: string };
 };
 
-const fieldClassName =
-  "h-11 w-full rounded-lg border bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring";
+const fieldClassName = "field-premium";
 
 export function SettingsForm({ initialValues }: SettingsFormProps) {
   const [message, setMessage] = useState("");
@@ -72,7 +71,7 @@ export function SettingsForm({ initialValues }: SettingsFormProps) {
 
   return (
     <form className="space-y-6" onSubmit={onSubmit} noValidate>
-      <section className="rounded-2xl border bg-card p-5 sm:p-6">
+      <section className="soft-panel p-6 sm:p-8">
         <h2 className="text-sm font-medium text-muted-foreground">
           Calories par jour
         </h2>
@@ -81,7 +80,7 @@ export function SettingsForm({ initialValues }: SettingsFormProps) {
             Objectif calorique quotidien
           </label>
           <input
-            className="w-full max-w-56 border-0 bg-transparent p-0 text-4xl font-semibold tabular-nums tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="w-full max-w-56 border-0 bg-transparent p-0 text-5xl font-semibold tabular-nums tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring"
             id="daily_calories"
             max={10000}
             min={500}
@@ -103,7 +102,7 @@ export function SettingsForm({ initialValues }: SettingsFormProps) {
         </p>
       </section>
 
-      <details className="group rounded-2xl border bg-card">
+      <details className="soft-panel group overflow-hidden">
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 font-medium [&::-webkit-details-marker]:hidden">
           <span>Ajuster les macros</span>
           <span
@@ -113,7 +112,7 @@ export function SettingsForm({ initialValues }: SettingsFormProps) {
             ↓
           </span>
         </summary>
-        <section className="border-t p-5 sm:p-6">
+        <section className="border-t border-border/70 p-5 sm:p-6">
           <p className="text-sm text-muted-foreground">
             Modifiez ces objectifs si vous souhaitez suivre vos macros.
           </p>
@@ -152,7 +151,7 @@ export function SettingsForm({ initialValues }: SettingsFormProps) {
         </section>
       </details>
 
-      <details className="group rounded-2xl border bg-card">
+      <details className="soft-panel group overflow-hidden">
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 font-medium [&::-webkit-details-marker]:hidden">
           <span>Modifier mon profil nutritionnel</span>
           <span
@@ -162,7 +161,7 @@ export function SettingsForm({ initialValues }: SettingsFormProps) {
             ↓
           </span>
         </summary>
-        <section className="border-t p-5 sm:p-6">
+        <section className="border-t border-border/70 p-5 sm:p-6">
           <p className="text-sm text-muted-foreground">
             Ces informations servent uniquement à calculer une recommandation.
           </p>

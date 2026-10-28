@@ -66,41 +66,45 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-3xl px-4 py-6 pb-28 sm:px-6 sm:py-10 sm:pb-12">
         <header className="mb-6">
           <div>
-            <p className="text-sm text-muted-foreground">
+            <p className="eyebrow">
               {new Intl.DateTimeFormat("fr-FR", {
                 dateStyle: "full",
                 timeZone: "UTC",
               }).format(new Date(`${summary.today.date}T12:00:00Z`))}
             </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-              Aujourd’hui
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+              Bonjour
             </h1>
           </div>
         </header>
 
-        <section className="rounded-2xl border bg-card p-5 sm:p-7">
+        <section className="hero-panel relative p-6 sm:p-9">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-20 -top-24 size-64 rounded-full border-[34px] border-white/[0.06]"
+          />
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-sm font-medium text-muted-foreground">
+              <h2 className="text-sm font-medium text-white/75">
                 {caloriesRemaining < 0
                   ? "Objectif dépassé de"
                   : "Il vous reste"}
               </h2>
               <p
-                className="mt-2 text-5xl font-semibold tabular-nums tracking-tight"
+                className="mt-2 text-6xl font-semibold tabular-nums tracking-tight sm:text-7xl"
                 aria-live="polite"
               >
                 {numberFormat.format(Math.abs(caloriesRemaining))}
-                <span className="ml-2 text-xl font-medium text-muted-foreground">
+                <span className="ml-2 text-xl font-medium text-white/70">
                   kcal
                 </span>
               </p>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-white/75">
                 {numberFormat.format(summary.today.calories)} consommées sur{" "}
                 {numberFormat.format(goals.daily_calories)} kcal
               </p>
             </div>
-            <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+            <span className="shrink-0 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white/90">
               {summary.today.meal_count}{" "}
               {summary.today.meal_count === 1 ? "repas" : "repas"}
             </span>
@@ -118,18 +122,18 @@ export default async function DashboardPage() {
                 ? `Objectif dépassé de ${numberFormat.format(summary.today.calories - goals.daily_calories)} kcal`
                 : `${numberFormat.format(goals.daily_calories - summary.today.calories)} kcal restantes`
             }
-            className="mt-6 h-3 overflow-hidden rounded-full bg-muted"
+            className="mt-7 h-2.5 overflow-hidden rounded-full bg-white/20"
             role="progressbar"
           >
             <div
-              className="h-full rounded-full bg-primary transition-[width]"
+              className="h-full rounded-full bg-highlight transition-[width]"
               style={{
                 width: `${Math.min(100, Math.round((summary.today.calories / Math.max(goals.daily_calories, 1)) * 100))}%`,
               }}
             />
           </div>
           <Link
-            className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-primary px-6 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="mt-7 inline-flex min-h-14 w-full items-center justify-center rounded-full bg-highlight px-6 text-base font-semibold text-primary transition-transform hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:scale-[0.99]"
             href="/meal/new"
           >
             + Ajouter un repas
@@ -138,13 +142,13 @@ export default async function DashboardPage() {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <Link
-            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-primary transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold text-primary transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             href="/history"
           >
             Voir l’historique
           </Link>
           <Link
-            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex min-h-11 items-center rounded-full px-4 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             href="/settings"
           >
             Modifier l’objectif
@@ -152,7 +156,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-4 space-y-3">
-          <details className="group rounded-2xl border bg-card">
+          <details className="soft-panel group">
             <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 font-medium [&::-webkit-details-marker]:hidden">
               <span>Voir mes macros</span>
               <span
@@ -162,7 +166,7 @@ export default async function DashboardPage() {
                 ↓
               </span>
             </summary>
-            <div className="space-y-5 border-t px-5 py-5">
+            <div className="space-y-5 border-t border-border/70 px-5 py-5">
               <ProgressMetric
                 current={summary.today.protein}
                 label="Protéines"
@@ -184,7 +188,7 @@ export default async function DashboardPage() {
             </div>
           </details>
 
-          <details className="group rounded-2xl border bg-card">
+          <details className="soft-panel group">
             <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 font-medium [&::-webkit-details-marker]:hidden">
               <span>Voir mes tendances</span>
               <span
@@ -194,7 +198,7 @@ export default async function DashboardPage() {
                 ↓
               </span>
             </summary>
-            <div className="space-y-4 border-t px-4 py-5 sm:px-5">
+            <div className="space-y-4 border-t border-border/70 px-4 py-5 sm:px-5">
               <div className="grid gap-3 sm:grid-cols-2">
                 <article className="rounded-xl bg-muted/60 p-4">
                   <p className="text-sm text-muted-foreground">

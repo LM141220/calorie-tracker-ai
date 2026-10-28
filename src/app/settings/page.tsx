@@ -36,10 +36,13 @@ export default async function SettingsPage() {
   return (
     <main className="min-h-screen bg-muted/30">
       <AppHeader />
-      <div className="mx-auto max-w-3xl px-4 py-8 pb-28 sm:px-6 sm:py-12 sm:pb-12">
+      <div className="mx-auto max-w-2xl px-5 py-7 pb-32 sm:px-6 sm:py-12 sm:pb-12">
         <header className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight">Objectifs</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="eyebrow">Réglages</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+            Objectifs
+          </h1>
+          <p className="mt-2 max-w-md text-base leading-7 text-muted-foreground">
             Définissez votre cible quotidienne. Les autres réglages sont
             facultatifs.
           </p>

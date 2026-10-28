@@ -47,7 +47,7 @@ export function LoginForm() {
     <div className="space-y-5">
       {authError === "oauth" || authError === "auth_callback" ? (
         <p
-          className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+          className="rounded-2xl bg-destructive/10 p-4 text-sm text-destructive"
           role="alert"
         >
           La connexion avec ce fournisseur a échoué. Réessayez.
@@ -60,7 +60,7 @@ export function LoginForm() {
           </label>
           <input
             autoComplete="email"
-            className="h-11 w-full rounded-lg border bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+            className="field-premium"
             id="email"
             type="email"
             {...register("email")}
@@ -88,7 +88,7 @@ export function LoginForm() {
           </div>
           <input
             autoComplete="current-password"
-            className="h-11 w-full rounded-lg border bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+            className="field-premium"
             id="password"
             type="password"
             {...register("password")}

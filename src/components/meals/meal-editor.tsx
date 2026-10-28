@@ -497,89 +497,92 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
   return (
     <div className="space-y-6">
       {!initialMeal ? (
-        <section className="space-y-4 rounded-2xl border bg-card p-5 sm:p-6">
-          <div>
-            <label className="font-semibold" htmlFor="meal-description">
-              Qu’avez-vous mangé ?
-            </label>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Décrivez le repas, les quantités si vous les connaissez.
-            </p>
-          </div>
-          <textarea
-            className="min-h-24 w-full resize-y rounded-lg border bg-background p-3 text-base outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
-            id="meal-description"
-            maxLength={5000}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="Ex. : 150 g de riz, 200 g de poulet et une pomme"
-            value={description}
-          />
-          <Button
-            className="w-full sm:w-auto"
-            disabled={isAnalyzing || description.trim().length < 3}
-            onClick={() => void analyzeText()}
-            size="lg"
-            type="button"
-          >
-            {isAnalyzing ? "Analyse en cours…" : "Analyser le repas"}
-          </Button>
-
-          <div className="flex flex-wrap gap-2 border-t pt-4">
+        <section className="space-y-5">
+          <div className="soft-panel space-y-4 p-5 sm:p-6">
             <Button
-              className="min-h-11"
+              className="min-h-24 w-full flex-col gap-2 rounded-[1.5rem] bg-primary text-primary-foreground shadow-sm hover:bg-primary/95"
               onClick={() => fileInputRef.current?.click()}
               type="button"
-              variant="outline"
             >
-              <Camera aria-hidden="true" className="mr-2 size-4" />
-              {previewUrl ? "Changer la photo" : "Ajouter une photo"}
+              <Camera aria-hidden="true" className="size-7 text-highlight" />
+              <span className="text-base font-semibold">Prendre une photo</span>
             </Button>
-            <Button
-              className="min-h-11"
-              onClick={() => setIsFoodSearchOpen(true)}
-              type="button"
-              variant="ghost"
-            >
-              <Search aria-hidden="true" className="mr-2 size-4" />
-              Chercher un aliment
-            </Button>
+            {previewUrl ? (
+              <div className="relative aspect-[4/3] max-h-80 overflow-hidden rounded-2xl bg-muted">
+                <Image
+                  alt="Aperçu du repas sélectionné"
+                  className="object-cover"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 640px) 100vw, 600px"
+                  src={previewUrl}
+                />
+              </div>
+            ) : null}
+            {uploadedPath ? (
+              <Button
+                disabled={isAnalyzing}
+                onClick={() => void analyzeImagePath(uploadedPath)}
+                type="button"
+                variant="secondary"
+              >
+                {isAnalyzing ? "Analyse…" : "Relancer l’analyse"}
+              </Button>
+            ) : null}
+            <input
+              ref={fileInputRef}
+              accept={allowedMimeTypes.join(",")}
+              aria-label="Choisir une photo du repas"
+              capture="environment"
+              className="sr-only"
+              onChange={(event) =>
+                void onImageSelected(event.target.files?.[0])
+              }
+              type="file"
+            />
           </div>
-          {previewUrl ? (
-            <div className="relative aspect-[4/3] max-h-80 overflow-hidden rounded-xl bg-muted">
-              <Image
-                alt="Aperçu du repas sélectionné"
-                className="object-contain"
-                fill
-                unoptimized
-                sizes="(max-width: 640px) 100vw, 600px"
-                src={previewUrl}
-              />
-            </div>
-          ) : null}
-          {uploadedPath ? (
-            <Button
-              disabled={isAnalyzing}
-              onClick={() => void analyzeImagePath(uploadedPath)}
-              type="button"
-              variant="secondary"
+
+          <div className="px-1 pt-1">
+            <label
+              className="text-base font-semibold"
+              htmlFor="meal-description"
             >
-              {isAnalyzing ? "Analyse…" : "Relancer l’analyse"}
-            </Button>
-          ) : null}
-          <input
-            ref={fileInputRef}
-            accept={allowedMimeTypes.join(",")}
-            aria-label="Choisir une photo du repas"
-            capture="environment"
-            className="sr-only"
-            onChange={(event) => void onImageSelected(event.target.files?.[0])}
-            type="file"
-          />
+              Ou décris ton repas
+            </label>
+            <textarea
+              className="mt-3 min-h-24 w-full resize-y rounded-2xl border-0 bg-card p-4 text-base shadow-sm outline-none transition placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-ring"
+              id="meal-description"
+              maxLength={5000}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Ex. : 150 g de riz, 200 g de poulet et une pomme"
+              value={description}
+            />
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <Button
+                className="min-h-12 rounded-full px-6"
+                disabled={isAnalyzing || description.trim().length < 3}
+                onClick={() => void analyzeText()}
+                size="lg"
+                type="button"
+              >
+                {isAnalyzing ? "Analyse en cours…" : "Continuer"}
+              </Button>
+              <Button
+                className="min-h-11 rounded-full px-4 text-muted-foreground"
+                onClick={() => setIsFoodSearchOpen(true)}
+                type="button"
+                variant="ghost"
+              >
+                <Search aria-hidden="true" className="mr-2 size-4" />
+                Chercher un aliment
+              </Button>
+            </div>
+          </div>
         </section>
       ) : null}
 
       {initialMeal ? (
-        <section className="space-y-4 rounded-2xl border bg-card p-5 sm:p-6">
+        <section className="soft-panel space-y-4 p-5 sm:p-6">
           <div>
             <h2 className="font-semibold">Photo du repas</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -587,7 +590,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
             </p>
           </div>
           {previewUrl ? (
-            <div className="relative aspect-[4/3] max-h-80 overflow-hidden rounded-xl bg-muted">
+            <div className="relative aspect-[4/3] max-h-80 overflow-hidden rounded-2xl bg-muted">
               <Image
                 alt="Photo du repas"
                 className="object-contain"
@@ -636,7 +639,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
 
       {notice ? (
         <p
-          className={`rounded-lg p-3 text-sm ${noticeIsError ? "bg-destructive/10 text-destructive" : "bg-secondary text-secondary-foreground"}`}
+          className={`rounded-2xl p-4 text-sm ${noticeIsError ? "bg-destructive/10 text-destructive" : "bg-secondary text-secondary-foreground"}`}
           role={noticeIsError ? "alert" : "status"}
         >
           {notice}
@@ -648,7 +651,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
         onSubmit={form.handleSubmit(onSubmit)}
         noValidate
       >
-        <section className="space-y-4 rounded-2xl border bg-card p-5 sm:p-6">
+        <section className="soft-panel space-y-4 p-5 sm:p-6">
           <div>
             <h2 className="font-semibold">Vérifier et modifier</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -664,7 +667,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
               Nom du repas
             </label>
             <input
-              className="h-11 w-full rounded-lg border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-12 w-full rounded-xl border-0 bg-background px-4 text-base shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               id="meal-name"
               maxLength={200}
               {...form.register("meal_name")}
@@ -685,7 +688,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
               Notes
             </label>
             <textarea
-              className="min-h-20 w-full rounded-lg border bg-background p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-20 w-full rounded-xl border-0 bg-background p-4 text-base shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               id="meal-notes"
               maxLength={5000}
               {...form.register("notes")}
@@ -709,7 +712,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
           <div className="space-y-4">
             {fields.map((field, index) => (
               <fieldset
-                className="space-y-3 rounded-xl border p-4"
+                className="space-y-3 rounded-2xl bg-background/80 p-4"
                 key={field.fieldKey}
               >
                 <legend className="sr-only">Aliment {index + 1}</legend>
@@ -722,7 +725,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
                       Aliment
                     </label>
                     <input
-                      className="h-10 w-full rounded-lg border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="h-11 w-full rounded-xl border-0 bg-card px-3 text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       id={`food-name-${index}`}
                       maxLength={200}
                       {...form.register(`items.${index}.food_name`)}
@@ -757,7 +760,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
                         {label}
                       </label>
                       <input
-                        className="h-10 w-full rounded-lg border bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="h-11 w-full rounded-xl border-0 bg-card px-2 text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         id={`food-${key}-${index}`}
                         max={max}
                         min={0}
@@ -777,7 +780,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
           {isFoodSearchOpen ? (
             <section
               aria-label="Rechercher un aliment"
-              className="space-y-4 rounded-xl border bg-muted/40 p-4"
+              className="space-y-4 rounded-2xl bg-background p-4 sm:p-5"
               ref={foodSearchRef}
             >
               <div className="flex items-start justify-between gap-3">
@@ -847,7 +850,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
                 </label>
                 <input
                   autoComplete="off"
-                  className="h-10 min-w-0 flex-1 rounded-lg border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="h-12 min-w-0 flex-1 rounded-xl border-0 bg-card px-4 text-base shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   id="food-search"
                   inputMode="search"
                   maxLength={80}
@@ -897,7 +900,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
                   {foodSearchResults.map((food, index) => (
                     <li key={`${food.name}-${food.brand}-${index}`}>
                       <button
-                        className="flex w-full items-center gap-3 rounded-lg border bg-card p-3 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="flex w-full items-center gap-3 rounded-2xl bg-card p-3 text-left shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         disabled={fields.length >= 50}
                         onClick={() => addFoodSearchResult(food)}
                         type="button"
@@ -993,7 +996,7 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
 
         <div className="flex flex-col-reverse justify-between gap-3 sm:flex-row">
           <Link
-            className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             href={initialMeal ? `/meal/${initialMeal.id}` : "/dashboard"}
           >
             Annuler

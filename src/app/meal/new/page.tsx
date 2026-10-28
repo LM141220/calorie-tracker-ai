@@ -24,15 +24,16 @@ export default async function NewMealPage() {
   return (
     <main className="min-h-screen bg-muted/30">
       <AppHeader />
-      <div className="mx-auto max-w-3xl px-4 py-6 pb-28 sm:px-6 sm:py-10 sm:pb-12">
+      <div className="mx-auto max-w-2xl px-5 py-5 pb-32 sm:px-6 sm:py-9 sm:pb-12">
         <Link
-          className="text-sm font-medium text-primary hover:underline"
+          className="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-semibold text-primary transition-colors hover:bg-accent"
           href="/dashboard"
         >
-          ← Retour à l’accueil
+          ← Accueil
         </Link>
-        <header className="mb-6 mt-5">
-          <h1 className="text-2xl font-semibold tracking-tight">
+        <header className="mb-5 mt-5">
+          <p className="eyebrow">On y va</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
             Ajouter un repas
           </h1>
         </header>
