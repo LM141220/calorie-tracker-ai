@@ -55,6 +55,7 @@ function ProgressMetric({
 
 export default async function DashboardPage() {
   const { goals, summary } = await getDashboardData();
+  const caloriesRemaining = goals.daily_calories - summary.today.calories;
   const numberFormat = new Intl.NumberFormat("fr-FR", {
     maximumFractionDigits: 0,
   });
@@ -81,15 +82,15 @@ export default async function DashboardPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-sm font-medium text-muted-foreground">
-                Il vous reste
+                {caloriesRemaining < 0
+                  ? "Objectif dépassé de"
+                  : "Il vous reste"}
               </h2>
               <p
                 className="mt-2 text-5xl font-semibold tabular-nums tracking-tight"
                 aria-live="polite"
               >
-                {numberFormat.format(
-                  Math.max(goals.daily_calories - summary.today.calories, 0),
-                )}
+                {numberFormat.format(Math.abs(caloriesRemaining))}
                 <span className="ml-2 text-xl font-medium text-muted-foreground">
                   kcal
                 </span>
@@ -127,15 +128,6 @@ export default async function DashboardPage() {
               }}
             />
           </div>
-          {summary.today.calories >= goals.daily_calories ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Objectif dépassé de{" "}
-              {numberFormat.format(
-                summary.today.calories - goals.daily_calories,
-              )}{" "}
-              kcal
-            </p>
-          ) : null}
           <Link
             className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-primary px-6 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             href="/meal/new"

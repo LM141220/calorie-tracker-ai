@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AppHeader } from "@/components/app-header";
-import { getMealHistory, HISTORY_PAGE_SIZE } from "@/features/history/queries";
+import { getMealHistory } from "@/features/history/queries";
 
 export const metadata: Metadata = {
   title: "Historique des repas",
@@ -30,6 +30,28 @@ export default async function HistoryPage({
   const numberFormat = new Intl.NumberFormat("fr-FR", {
     maximumFractionDigits: 0,
   });
+  const dateFormat = new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "full",
+    timeZone: timezone,
+  });
+  const timeFormat = new Intl.DateTimeFormat("fr-FR", {
+    timeStyle: "short",
+    timeZone: timezone,
+  });
+  const groupedMeals = meals.reduce<
+    Array<{ date: string; meals: typeof meals }>
+  >((groups, meal) => {
+    const date = dateFormat.format(new Date(meal.created_at));
+    const lastGroup = groups[groups.length - 1];
+
+    if (lastGroup?.date === date) {
+      lastGroup.meals.push(meal);
+    } else {
+      groups.push({ date, meals: [meal] });
+    }
+
+    return groups;
+  }, []);
 
   return (
     <main className="min-h-screen bg-muted/30">
@@ -37,13 +59,9 @@ export default async function HistoryPage({
       <div className="mx-auto max-w-5xl px-4 py-8 pb-28 sm:px-6 sm:py-12 sm:pb-12">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-primary">Votre journal</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-              Historique des repas
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Historique
             </h1>
-            <p className="mt-2 text-muted-foreground">
-              Retrouvez les repas enregistrés, du plus récent au plus ancien.
-            </p>
           </div>
           <Link
             className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -67,50 +85,50 @@ export default async function HistoryPage({
             </Link>
           </section>
         ) : (
-          <div className="mt-8 space-y-3">
-            {meals.map((meal) => (
-              <Link
-                className="group flex items-center gap-4 rounded-2xl border bg-card p-3 transition-colors hover:bg-accent/50 sm:gap-5 sm:p-4"
-                href={`/meal/${meal.id}`}
-                key={meal.id}
-              >
-                <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-muted sm:size-24">
-                  {meal.imagePreviewUrl ? (
-                    <Image
-                      alt=""
-                      className="object-cover"
-                      fill
-                      unoptimized
-                      sizes="96px"
-                      src={meal.imagePreviewUrl}
-                    />
-                  ) : (
-                    <span className="flex size-full items-center justify-center text-xs text-muted-foreground">
-                      Repas
-                    </span>
-                  )}
+          <div className="mt-8 space-y-7">
+            {groupedMeals.map((group) => (
+              <section aria-label={group.date} key={group.date}>
+                <h2 className="mb-3 text-sm font-semibold capitalize text-muted-foreground">
+                  {group.date}
+                </h2>
+                <div className="space-y-2">
+                  {group.meals.map((meal) => (
+                    <Link
+                      className="group flex min-h-20 items-center gap-3 rounded-2xl border bg-card p-3 transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-4"
+                      href={`/meal/${meal.id}`}
+                      key={meal.id}
+                    >
+                      <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-muted sm:size-16">
+                        {meal.imagePreviewUrl ? (
+                          <Image
+                            alt=""
+                            className="object-cover"
+                            fill
+                            unoptimized
+                            sizes="64px"
+                            src={meal.imagePreviewUrl}
+                          />
+                        ) : (
+                          <span className="flex size-full items-center justify-center text-xs text-muted-foreground">
+                            Repas
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate font-medium group-hover:text-primary">
+                          {meal.meal_name}
+                        </h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {timeFormat.format(new Date(meal.created_at))}
+                        </p>
+                      </div>
+                      <p className="shrink-0 text-sm font-semibold tabular-nums">
+                        {numberFormat.format(meal.calories)} kcal
+                      </p>
+                    </Link>
+                  ))}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="truncate font-semibold group-hover:text-primary">
-                    {meal.meal_name}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {new Intl.DateTimeFormat("fr-FR", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                      timeZone: timezone,
-                    }).format(new Date(meal.created_at))}
-                  </p>
-                  {meal.notes ? (
-                    <p className="mt-1 truncate text-sm text-muted-foreground">
-                      {meal.notes}
-                    </p>
-                  ) : null}
-                </div>
-                <p className="shrink-0 text-sm font-semibold">
-                  {numberFormat.format(meal.calories)} kcal
-                </p>
-              </Link>
+              </section>
             ))}
           </div>
         )}
@@ -131,7 +149,7 @@ export default async function HistoryPage({
               <span />
             )}
             <span className="text-sm text-muted-foreground">
-              Page {page} / {totalPages} · {HISTORY_PAGE_SIZE} repas par page
+              Page {page} / {totalPages}
             </span>
             {page < totalPages ? (
               <Link
