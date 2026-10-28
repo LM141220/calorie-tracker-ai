@@ -7,6 +7,9 @@ import { QueryProvider } from "@/components/query-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  ),
   title: {
     default: "Lumo",
     template: "%s | Lumo",
@@ -14,6 +17,29 @@ export const metadata: Metadata = {
   description: "Suis simplement tes repas et ton objectif quotidien avec Lumo.",
   applicationName: "Lumo",
   manifest: "/manifest.webmanifest",
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "Lumo",
+    title: "Lumo — Suivi nutritionnel simple",
+    description:
+      "Suis tes repas, tes calories et tes objectifs quotidiens avec Lumo.",
+    images: [
+      {
+        url: "/icons/lumo-logo.png",
+        width: 512,
+        height: 512,
+        alt: "Logo Lumo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Lumo — Suivi nutritionnel simple",
+    description:
+      "Suis tes repas, tes calories et tes objectifs quotidiens avec Lumo.",
+    images: ["/icons/lumo-logo.png"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

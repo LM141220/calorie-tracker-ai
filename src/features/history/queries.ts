@@ -6,8 +6,12 @@ import { ServerPagePerformance } from "@/lib/performance/server";
 const IMAGE_BUCKET = "meal-images";
 export const HISTORY_PAGE_SIZE = 20;
 
-export async function getMealHistory(page: number) {
-  const perf = new ServerPagePerformance("History");
+export async function getMealHistory(
+  page: number,
+  performanceTrace?: ServerPagePerformance,
+) {
+  const ownsTrace = !performanceTrace;
+  const perf = performanceTrace ?? new ServerPagePerformance("History");
   try {
     const supabase = await createSupabaseServerClient(perf);
     const {
@@ -127,6 +131,8 @@ export async function getMealHistory(page: number) {
       totalPages: Math.max(1, Math.ceil((count ?? 0) / HISTORY_PAGE_SIZE)),
     };
   } finally {
-    perf.report();
+    if (ownsTrace) {
+      perf.report();
+    }
   }
 }

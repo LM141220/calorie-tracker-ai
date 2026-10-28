@@ -6,7 +6,7 @@ import { ArrowRight, UserRound } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { AppHeader } from "@/components/app-header";
-import { InstallPrompt } from "@/components/pwa/install-prompt";
+import { ApplicationManagement } from "@/components/pwa/application-management";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -59,9 +59,7 @@ export default async function ProfilePage() {
                 className="size-4 text-muted-foreground"
               />
             </Link>
-            <div className="flex min-h-14 items-center px-3">
-              <InstallPrompt />
-            </div>
+            <ApplicationManagement />
             <div className="mt-2 border-t border-border/70 pt-3">
               <LogoutButton />
             </div>

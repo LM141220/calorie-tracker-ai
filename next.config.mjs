@@ -1,5 +1,10 @@
 import withPWAInit from "@ducanh2912/next-pwa";
+import { readFileSync } from "node:fs";
 
+const packageJson = JSON.parse(
+  readFileSync(new URL("./package.json", import.meta.url), "utf8"),
+);
+const buildDate = new Date().toISOString();
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseImageRemotePattern = supabaseUrl ? new URL(supabaseUrl) : null;
 
@@ -39,6 +44,32 @@ const withPWA = withPWAInit({
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: packageJson.version,
+    NEXT_PUBLIC_BUILD_DATE: buildDate,
+  },
+  async headers() {
+    return [
+      {
+        source: "/manifest.webmanifest",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/icons/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
   reactStrictMode: true,
   images: {
     remotePatterns: supabaseImageRemotePattern

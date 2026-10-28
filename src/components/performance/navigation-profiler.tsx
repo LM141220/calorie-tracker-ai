@@ -70,16 +70,19 @@ export function NavigationProfiler() {
         return;
       }
 
+      const startedAt = performance.now();
+      const resourceStartIndex =
+        performance.getEntriesByType("resource").length;
       pendingNavigation.current = {
         from: window.location.pathname,
         to: destination.pathname,
-        startedAt: performance.now(),
-        resourceStartIndex: performance.getEntriesByType("resource").length,
+        startedAt,
+        resourceStartIndex,
       };
       window.__lumoPendingNavigation = {
         from: window.location.pathname,
         to: destination.pathname,
-        startedAt: performance.now(),
+        startedAt,
       };
     }
 
@@ -112,6 +115,31 @@ export function NavigationProfiler() {
           const imageResources = resources.filter((resource) =>
             resource.name.includes("/_next/image"),
           );
+          const rscResources = resources.filter((resource) => {
+            try {
+              const url = new URL(resource.name);
+              return (
+                url.pathname === navigation.to && url.searchParams.has("_rsc")
+              );
+            } catch {
+              return false;
+            }
+          });
+          const rscLines =
+            rscResources.length > 0
+              ? rscResources.flatMap((resource, index) => [
+                  `RSC #${index + 1} start-after-click: ${(resource.startTime - navigation.startedAt).toFixed(1)}ms`,
+                  `RSC #${index + 1} first-byte-after-click: ${(resource.responseStart - navigation.startedAt).toFixed(1)}ms`,
+                  `RSC #${index + 1} end-after-click: ${(resource.responseEnd - navigation.startedAt).toFixed(1)}ms`,
+                  `RSC #${index + 1} request-duration: ${(resource.responseEnd - resource.startTime).toFixed(1)}ms`,
+                  `RSC #${index + 1} TTFB: ${(resource.responseStart - resource.startTime).toFixed(1)}ms`,
+                  `RSC #${index + 1} body-transfer: ${(resource.responseEnd - resource.responseStart).toFixed(1)}ms`,
+                  `RSC #${index + 1} bytes: transfer=${resource.transferSize}, encoded=${resource.encodedBodySize}, decoded=${resource.decodedBodySize}`,
+                  `RSC #${index + 1} server-timing: ${resource.serverTiming.map((timing) => `${timing.name}=${timing.duration.toFixed(1)}ms`).join(", ") || "not exposed"}`,
+                ])
+              : [
+                  "RSC request: no matching request started after click (possibly prefetched or served from Next.js cache)",
+                ];
           console.info(
             [
               `[PERF NAV] ${displayPath(navigation.from)} → ${displayPath(navigation.to)}`,
@@ -119,6 +147,7 @@ export function NavigationProfiler() {
               `browser resources started since click (prefetch-before-click excluded): ${resources.length}`,
               `reported transfer bytes: ${bytes}`,
               `Next Image requests: ${imageResources.length}`,
+              ...rscLines,
             ].join("\n"),
           );
         }, 250);
