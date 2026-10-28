@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { NavigationProfiler } from "@/components/performance/navigation-profiler";
+import { QueryProvider } from "@/components/query-provider";
 
 import "./globals.css";
 
@@ -40,8 +41,10 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        <NavigationProfiler />
-        {children}
+        <QueryProvider>
+          <NavigationProfiler />
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );

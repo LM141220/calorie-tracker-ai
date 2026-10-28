@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { deleteMealAction } from "@/features/meals/actions";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ type DeleteMealButtonProps = {
 
 export function DeleteMealButton({ mealId }: DeleteMealButtonProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -28,6 +30,7 @@ export function DeleteMealButton({ mealId }: DeleteMealButtonProps) {
         return;
       }
 
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       router.push("/meal/new");
       router.refresh();
     });

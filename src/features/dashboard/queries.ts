@@ -1,30 +1,8 @@
 import { redirect } from "next/navigation";
-import { z } from "zod";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ServerPagePerformance } from "@/lib/performance/server";
-
-const dailyTotalsSchema = z.object({
-  date: z.string(),
-  meal_count: z.number().int().nonnegative(),
-  calories: z.number().nonnegative(),
-  protein: z.number().nonnegative(),
-  carbs: z.number().nonnegative(),
-  fat: z.number().nonnegative(),
-});
-
-const dashboardSummarySchema = z.object({
-  timezone: z.string(),
-  today: dailyTotalsSchema,
-  weekly_average: z.number().nonnegative(),
-  monthly_average: z.number().nonnegative(),
-  week: z.array(
-    z.object({
-      date: z.string(),
-      calories: z.number().nonnegative(),
-    }),
-  ),
-});
+import { dashboardSummarySchema } from "@/features/dashboard/schema";
 
 export async function getDashboardData() {
   const perf = new ServerPagePerformance("Dashboard");

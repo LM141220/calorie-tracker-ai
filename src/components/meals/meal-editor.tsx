@@ -15,6 +15,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Search } from "lucide-react";
 import { z } from "zod";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { saveMealAction } from "@/features/meals/actions";
@@ -140,6 +141,7 @@ function MealEditorContent({
   sourceFavoriteId,
   initialMeal,
 }: MealEditorProps) {
+  const queryClient = useQueryClient();
   const editorMode = mode ?? (initialMeal ? "edit" : "create");
   const isEditing = editorMode === "edit";
   const router = useRouter();
@@ -408,6 +410,7 @@ function MealEditorContent({
       setNoticeIsError(!result.success);
 
       if (result.success && result.mealId) {
+        await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
         router.push(`/meal/${result.mealId}`);
         router.refresh();
       }

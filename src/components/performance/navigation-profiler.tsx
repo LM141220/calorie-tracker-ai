@@ -19,7 +19,10 @@ export function NavigationProfiler() {
   const pendingNavigation = useRef<PendingNavigation | null>(null);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === "production") {
+    if (
+      process.env.NODE_ENV === "production" &&
+      process.env.NEXT_PUBLIC_PERF_LOGS !== "true"
+    ) {
       return;
     }
 
@@ -72,6 +75,11 @@ export function NavigationProfiler() {
         to: destination.pathname,
         startedAt: performance.now(),
         resourceStartIndex: performance.getEntriesByType("resource").length,
+      };
+      window.__lumoPendingNavigation = {
+        from: window.location.pathname,
+        to: destination.pathname,
+        startedAt: performance.now(),
       };
     }
 

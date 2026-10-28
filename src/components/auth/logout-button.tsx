@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { logoutAction } from "@/features/auth/actions";
 
@@ -8,9 +9,11 @@ const PRIVATE_CACHE_NAME = "calorie-tracker-ai-private-pages";
 
 export function LogoutButton() {
   const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
   function signOut() {
     startTransition(async () => {
+      queryClient.clear();
       try {
         if ("caches" in window) {
           await caches.delete(PRIVATE_CACHE_NAME);

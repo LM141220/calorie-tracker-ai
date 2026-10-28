@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { saveGoalSettingsAction } from "@/features/goals/actions";
@@ -19,6 +20,7 @@ export function SettingsForm({ initialValues }: SettingsFormProps) {
   const [message, setMessage] = useState("");
   const [succeeded, setSucceeded] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
   const form = useForm<GoalSettingsInput>({
     resolver: zodResolver(goalSettingsSchema),
     defaultValues: initialValues,
@@ -66,6 +68,9 @@ export function SettingsForm({ initialValues }: SettingsFormProps) {
       const result = await saveGoalSettingsAction(values);
       setMessage(result.message);
       setSucceeded(result.success);
+      if (result.success) {
+        await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      }
     });
   });
 
