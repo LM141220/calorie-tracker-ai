@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -23,30 +24,20 @@ async function createMealImagePreview(
   return data.signedUrl;
 }
 
-async function requireMealUser() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    redirect("/login");
-  }
-  return { supabase, user };
-}
-
-export async function getReusableMeals() {
-  const { supabase, user } = await requireMealUser();
+export async function getReusableMeals(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  user: User,
+) {
   const [recentResult, favoriteResult] = await Promise.all([
     supabase
       .from("meals")
-      .select("id, meal_name, image_url, created_at")
+      .select("id, meal_name, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(5),
     supabase
       .from("favorite_meals")
-      .select("id, meal_name, image_url, created_at")
+      .select("id, meal_name, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
   ]);
@@ -108,7 +99,7 @@ export async function getReusableMeals() {
       mealName: meal.meal_name,
       calories: recentCalories.get(meal.id) ?? 0,
       createdAt: meal.created_at,
-      imagePreviewUrl: await createMealImagePreview(supabase, meal.image_url),
+      imagePreviewUrl: null,
     })),
   );
   const favorites = await Promise.all(
@@ -117,17 +108,20 @@ export async function getReusableMeals() {
       mealName: meal.meal_name,
       calories: favoriteCalories.get(meal.id) ?? 0,
       createdAt: meal.created_at,
-      imagePreviewUrl: await createMealImagePreview(supabase, meal.image_url),
+      imagePreviewUrl: null,
     })),
   );
   return { recent, favorites };
 }
 
-export async function getMealForReuse(mealId: string) {
+export async function getMealForReuse(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  user: User,
+  mealId: string,
+) {
   if (!UUID_PATTERN.test(mealId)) {
     notFound();
   }
-  const { supabase, user } = await requireMealUser();
   const { data: meal, error: mealError } = await supabase
     .from("meals")
     .select("id, meal_name, notes, image_url")
@@ -158,11 +152,14 @@ export async function getMealForReuse(mealId: string) {
   };
 }
 
-export async function getFavoriteMealForReuse(favoriteMealId: string) {
+export async function getFavoriteMealForReuse(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  user: User,
+  favoriteMealId: string,
+) {
   if (!UUID_PATTERN.test(favoriteMealId)) {
     notFound();
   }
-  const { supabase, user } = await requireMealUser();
   const { data: favorite, error: favoriteError } = await supabase
     .from("favorite_meals")
     .select("id, meal_name, notes, image_url, source_meal_id")
@@ -205,7 +202,14 @@ export async function getOwnedMeal(mealId: string) {
     notFound();
   }
 
-  const { supabase, user } = await requireMealUser();
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    redirect("/login");
+  }
 
   const { data: meal, error: mealError } = await supabase
     .from("meals")

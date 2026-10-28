@@ -36,7 +36,11 @@ export default async function NewMealPage({
   }
 
   if (reuseMeal) {
-    const { meal, items, imagePreviewUrl } = await getMealForReuse(reuseMeal);
+    const { meal, items, imagePreviewUrl } = await getMealForReuse(
+      supabase,
+      user,
+      reuseMeal,
+    );
     return (
       <main className="min-h-screen bg-muted/30">
         <AppHeader />
@@ -71,8 +75,11 @@ export default async function NewMealPage({
   }
 
   if (favoriteMeal) {
-    const { favorite, items, imagePreviewUrl } =
-      await getFavoriteMealForReuse(favoriteMeal);
+    const { favorite, items, imagePreviewUrl } = await getFavoriteMealForReuse(
+      supabase,
+      user,
+      favoriteMeal,
+    );
     return (
       <main className="min-h-screen bg-muted/30">
         <AppHeader />
@@ -106,7 +113,7 @@ export default async function NewMealPage({
     );
   }
 
-  const reusableMeals = await getReusableMeals();
+  const reusableMeals = await getReusableMeals(supabase, user);
 
   return (
     <main className="min-h-screen bg-muted/30">

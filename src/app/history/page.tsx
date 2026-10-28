@@ -102,7 +102,7 @@ export default async function HistoryPage({
                             alt=""
                             className="object-cover"
                             fill
-                            unoptimized
+                            loading="lazy"
                             sizes="64px"
                             src={meal.imagePreviewUrl}
                           />

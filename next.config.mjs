@@ -1,5 +1,8 @@
 import withPWAInit from "@ducanh2912/next-pwa";
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseImageRemotePattern = supabaseUrl ? new URL(supabaseUrl) : null;
+
 const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
@@ -37,6 +40,18 @@ const withPWA = withPWAInit({
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  images: {
+    remotePatterns: supabaseImageRemotePattern
+      ? [
+          {
+            protocol: supabaseImageRemotePattern.protocol.slice(0, -1),
+            hostname: supabaseImageRemotePattern.hostname,
+            port: supabaseImageRemotePattern.port,
+            pathname: "/storage/v1/object/sign/meal-images/**",
+          },
+        ]
+      : [],
+  },
 };
 
 export default withPWA(nextConfig);

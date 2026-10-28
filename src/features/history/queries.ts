@@ -64,34 +64,40 @@ export async function getMealHistory(page: number) {
     );
   }
 
-  const mealsWithImages = await Promise.all(
-    meals.map(async (meal) => {
-      if (!meal.image_url) {
-        return {
-          ...meal,
-          calories: caloriesByMeal.get(meal.id) ?? 0,
-          imagePreviewUrl: null,
-        };
-      }
+  const imagePaths = [
+    ...new Set(
+      meals.flatMap((meal) => (meal.image_url ? [meal.image_url] : [])),
+    ),
+  ];
+  const signedUrlsByPath = new Map<string, string>();
+  if (imagePaths.length > 0) {
+    const { data: signedImages, error: imageError } = await supabase.storage
+      .from(IMAGE_BUCKET)
+      .createSignedUrls(imagePaths, 60 * 10);
 
-      const { data, error: imageError } = await supabase.storage
-        .from(IMAGE_BUCKET)
-        .createSignedUrl(meal.image_url, 60 * 10);
+    if (imageError) {
+      console.error("Meal history signed URL batch failed.", imageError);
+      throw new Error("Impossible de charger les photos de votre historique.");
+    }
 
-      if (imageError) {
-        console.error("Meal history signed URL creation failed.", imageError);
+    for (const signedImage of signedImages) {
+      if (!signedImage.path || !signedImage.signedUrl || signedImage.error) {
+        console.error("Meal history signed URL creation failed.", signedImage);
         throw new Error(
           "Impossible de charger les photos de votre historique.",
         );
       }
+      signedUrlsByPath.set(signedImage.path, signedImage.signedUrl);
+    }
+  }
 
-      return {
-        ...meal,
-        calories: caloriesByMeal.get(meal.id) ?? 0,
-        imagePreviewUrl: data.signedUrl,
-      };
-    }),
-  );
+  const mealsWithImages = meals.map((meal) => ({
+    ...meal,
+    calories: caloriesByMeal.get(meal.id) ?? 0,
+    imagePreviewUrl: meal.image_url
+      ? (signedUrlsByPath.get(meal.image_url) ?? null)
+      : null,
+  }));
 
   return {
     email: user.email ?? "",
