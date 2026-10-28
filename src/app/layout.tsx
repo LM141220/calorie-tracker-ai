@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { NavigationProfiler } from "@/components/performance/navigation-profiler";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -37,7 +39,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <body>
+        <NavigationProfiler />
+        {children}
+      </body>
     </html>
   );
 }

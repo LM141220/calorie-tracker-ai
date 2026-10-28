@@ -1,13 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+import type { ServerPagePerformance } from "@/lib/performance/server";
 import type { Database } from "@/types/database.types";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
 
-export async function createSupabaseServerClient() {
+export async function createSupabaseServerClient(
+  performanceTrace?: ServerPagePerformance,
+) {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
+    global: performanceTrace ? { fetch: performanceTrace.fetch } : undefined,
     cookies: {
       getAll() {
         return cookieStore.getAll();

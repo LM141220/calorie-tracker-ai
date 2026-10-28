@@ -15,7 +15,7 @@ export default async function EditMealPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { meal, items, imagePreviewUrl } = await getOwnedMeal(id);
+  const { meal, items, imagePreviewUrl } = await getOwnedMeal(id, "MealEdit");
 
   return (
     <main className="min-h-screen bg-muted/30">

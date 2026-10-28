@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { removeFavoriteMealAction } from "@/features/meals/actions";
+import { usePerformanceMount } from "@/lib/performance/client";
 
 type ReusableMeal = {
   id: string;
@@ -28,6 +29,7 @@ const numberFormat = new Intl.NumberFormat("fr-FR", {
 });
 
 export function ReusableMeals({ recent, favorites }: ReusableMealsProps) {
+  usePerformanceMount("ReusableMeals");
   return (
     <section className="space-y-5" aria-label="Réutiliser un repas">
       {recent.length > 0 ? (
