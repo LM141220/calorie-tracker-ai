@@ -17,6 +17,12 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { saveMealAction } from "@/features/meals/actions";
+import {
+  createPortionBaseline,
+  scaleNutritionValues,
+  type PortionBaseline,
+} from "@/features/meals/portion-scaling";
+import { ReusableMeals } from "@/components/meals/reusable-meals";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { mealAnalysisSchema } from "@/services/ai/schema";
 import { searchOpenFoodFacts } from "@/services/foods/open-food-facts";
@@ -29,6 +35,25 @@ const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"] as const;
 const apiErrorSchema = z.object({ error: z.string().optional() });
 
 type MealEditorProps = {
+  mode?: "create" | "edit" | "reuse";
+  sourceMealId?: string;
+  sourceFavoriteId?: string;
+  reusableMeals?: {
+    recent: {
+      id: string;
+      mealName: string;
+      calories: number;
+      createdAt: string;
+      imagePreviewUrl: string | null;
+    }[];
+    favorites: {
+      id: string;
+      mealName: string;
+      calories: number;
+      createdAt: string;
+      imagePreviewUrl: string | null;
+    }[];
+  };
   initialMeal?: {
     id: string;
     mealName: string;
@@ -87,7 +112,15 @@ async function getApiError(response: Response): Promise<string> {
     : "La requête a échoué. Réessayez.";
 }
 
-export function MealEditor({ initialMeal }: MealEditorProps) {
+export function MealEditor({
+  mode,
+  sourceMealId,
+  sourceFavoriteId,
+  reusableMeals,
+  initialMeal,
+}: MealEditorProps) {
+  const editorMode = mode ?? (initialMeal ? "edit" : "create");
+  const isEditing = editorMode === "edit";
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const barcodeVideoRef = useRef<HTMLVideoElement>(null);
@@ -118,7 +151,10 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
   const form = useForm<SaveMealInput>({
     resolver: zodResolver(saveMealInputSchema),
     defaultValues: {
-      id: initialMeal?.id ?? null,
+      id: isEditing ? (initialMeal?.id ?? null) : null,
+      source_meal_id: editorMode === "reuse" ? (sourceMealId ?? null) : null,
+      source_favorite_id:
+        editorMode === "reuse" ? (sourceFavoriteId ?? null) : null,
       meal_name: initialMeal?.mealName ?? "",
       notes: initialMeal?.notes ?? "",
       image_path: initialMeal?.imagePath ?? null,
@@ -130,11 +166,27 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
     name: "items",
     keyName: "fieldKey",
   });
+  const portionBaselines = useRef<Record<string, PortionBaseline>>({});
   const items = form.watch("items");
   const totalCalories = items.reduce(
     (total, item) => total + (item.calories || 0),
     0,
   );
+
+  useEffect(() => {
+    for (const [index, field] of fields.entries()) {
+      const currentItem = form.getValues(`items.${index}`);
+      if (currentItem) {
+        portionBaselines.current[field.fieldKey] = {
+          weight_g: currentItem.weight_g,
+          calories: currentItem.calories,
+          protein: currentItem.protein,
+          carbs: currentItem.carbs,
+          fat: currentItem.fat,
+        };
+      }
+    }
+  }, [fields, form]);
 
   useEffect(() => {
     return () => {
@@ -581,6 +633,29 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
         </section>
       ) : null}
 
+      {editorMode === "reuse" ? (
+        <p className="rounded-2xl bg-secondary p-4 text-sm text-secondary-foreground">
+          Ajuste les portions et les valeurs si besoin. Une nouvelle entrée sera
+          ajoutée à aujourd’hui, sans modifier le repas d’origine.
+        </p>
+      ) : null}
+
+      {editorMode === "create" && reusableMeals ? (
+        <section className="soft-panel space-y-3 p-5 sm:p-6">
+          <div>
+            <h2 className="font-semibold">Réutiliser un repas</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Choisis un repas : tu pourras ajuster les portions avant de
+              l’ajouter.
+            </p>
+          </div>
+          <ReusableMeals
+            favorites={reusableMeals.favorites}
+            recent={reusableMeals.recent}
+          />
+        </section>
+      ) : null}
+
       {initialMeal ? (
         <section className="soft-panel space-y-4 p-5 sm:p-6">
           <div>
@@ -769,6 +844,87 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
                         {...form.register(`items.${index}.${key}`, {
                           valueAsNumber: true,
                         })}
+                        onChange={(event) => {
+                          const registration = form.register(
+                            `items.${index}.${key}`,
+                            { valueAsNumber: true },
+                          );
+                          registration.onChange(event);
+
+                          const fieldKey = fields[index]?.fieldKey;
+                          if (!fieldKey) {
+                            return;
+                          }
+
+                          if (key === "weight_g") {
+                            const nextWeight =
+                              event.target.value === ""
+                                ? 0
+                                : Number(event.target.value);
+                            const baseline = portionBaselines.current[fieldKey];
+                            if (!baseline) {
+                              return;
+                            }
+
+                            const scaled = scaleNutritionValues(
+                              baseline,
+                              nextWeight,
+                            );
+                            for (const nutrient of [
+                              "calories",
+                              "protein",
+                              "carbs",
+                              "fat",
+                            ] as const) {
+                              form.setValue(
+                                `items.${index}.${nutrient}`,
+                                scaled[nutrient],
+                                { shouldValidate: true },
+                              );
+                            }
+                            if (baseline.weight_g <= 0 && nextWeight > 0) {
+                              portionBaselines.current[fieldKey] =
+                                createPortionBaseline(nextWeight, scaled);
+                            }
+                          } else {
+                            const currentItem = form.getValues(
+                              `items.${index}`,
+                            );
+                            const changedValue =
+                              event.target.value === ""
+                                ? 0
+                                : Number(event.target.value);
+                            const currentWeight =
+                              Number.isFinite(currentItem.weight_g) &&
+                              currentItem.weight_g > 0
+                                ? currentItem.weight_g
+                                : 0;
+                            const safeChangedValue = Number.isFinite(
+                              changedValue,
+                            )
+                              ? changedValue
+                              : 0;
+                            portionBaselines.current[fieldKey] = {
+                              weight_g: currentWeight,
+                              calories:
+                                key === "calories"
+                                  ? safeChangedValue
+                                  : currentItem.calories,
+                              protein:
+                                key === "protein"
+                                  ? safeChangedValue
+                                  : currentItem.protein,
+                              carbs:
+                                key === "carbs"
+                                  ? safeChangedValue
+                                  : currentItem.carbs,
+                              fat:
+                                key === "fat"
+                                  ? safeChangedValue
+                                  : currentItem.fat,
+                            };
+                          }
+                        }}
                       />
                     </div>
                   ))}
@@ -997,7 +1153,13 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
         <div className="flex flex-col-reverse justify-between gap-3 sm:flex-row">
           <Link
             className="inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            href={initialMeal ? `/meal/${initialMeal.id}` : "/dashboard"}
+            href={
+              isEditing
+                ? `/meal/${initialMeal?.id}`
+                : editorMode === "reuse"
+                  ? "/meal/new"
+                  : "/dashboard"
+            }
           >
             Annuler
           </Link>
@@ -1008,9 +1170,11 @@ export function MealEditor({ initialMeal }: MealEditorProps) {
           >
             {isSaving
               ? "Enregistrement…"
-              : initialMeal
+              : isEditing
                 ? "Enregistrer les modifications"
-                : "Enregistrer le repas"}
+                : editorMode === "reuse"
+                  ? "Ajouter à aujourd’hui"
+                  : "Enregistrer le repas"}
           </Button>
         </div>
       </form>

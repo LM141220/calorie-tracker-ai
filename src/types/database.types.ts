@@ -130,6 +130,8 @@ export type Database = {
           image_url: string | null;
           meal_name: string;
           notes: string | null;
+          source_meal_id: string | null;
+          source_favorite_id: string | null;
           created_at: string;
           updated_at: string;
         },
@@ -139,6 +141,8 @@ export type Database = {
           image_url?: string | null;
           meal_name?: string;
           notes?: string | null;
+          source_meal_id?: string | null;
+          source_favorite_id?: string | null;
           created_at?: string;
           updated_at?: string;
         },
@@ -148,6 +152,8 @@ export type Database = {
           image_url?: string | null;
           meal_name?: string;
           notes?: string | null;
+          source_meal_id?: string | null;
+          source_favorite_id?: string | null;
           created_at?: string;
           updated_at?: string;
         },
@@ -157,6 +163,95 @@ export type Database = {
             ["user_id"],
             false,
             "profiles",
+            ["id"]
+          >,
+        ]
+      >;
+      favorite_meals: TableDefinition<
+        {
+          id: string;
+          user_id: string;
+          source_meal_id: string | null;
+          meal_name: string;
+          notes: string | null;
+          image_url: string | null;
+          created_at: string;
+        },
+        {
+          id?: string;
+          user_id: string;
+          source_meal_id?: string | null;
+          meal_name: string;
+          notes?: string | null;
+          image_url?: string | null;
+          created_at?: string;
+        },
+        {
+          id?: string;
+          user_id?: string;
+          source_meal_id?: string | null;
+          meal_name?: string;
+          notes?: string | null;
+          image_url?: string | null;
+          created_at?: string;
+        },
+        [
+          Relationship<
+            "favorite_meals_user_id_fkey",
+            ["user_id"],
+            false,
+            "profiles",
+            ["id"]
+          >,
+          Relationship<
+            "favorite_meals_source_meal_id_fkey",
+            ["source_meal_id"],
+            false,
+            "meals",
+            ["id"]
+          >,
+        ]
+      >;
+      favorite_meal_items: TableDefinition<
+        {
+          id: string;
+          favorite_meal_id: string;
+          sort_order: number;
+          food_name: string;
+          weight_g: number;
+          calories: number;
+          protein: number;
+          carbs: number;
+          fat: number;
+        },
+        {
+          id?: string;
+          favorite_meal_id: string;
+          sort_order?: number;
+          food_name: string;
+          weight_g: number;
+          calories: number;
+          protein?: number;
+          carbs?: number;
+          fat?: number;
+        },
+        {
+          id?: string;
+          favorite_meal_id?: string;
+          sort_order?: number;
+          food_name?: string;
+          weight_g?: number;
+          calories?: number;
+          protein?: number;
+          carbs?: number;
+          fat?: number;
+        },
+        [
+          Relationship<
+            "favorite_meal_items_favorite_meal_id_fkey",
+            ["favorite_meal_id"],
+            false,
+            "favorite_meals",
             ["id"]
           >,
         ]
@@ -258,9 +353,24 @@ export type Database = {
           p_meal_name: string;
           p_notes: string | null;
           p_image_path: string | null;
+          p_source_meal_id: string | null;
+          p_source_favorite_id: string | null;
           p_items: Json;
         };
         Returns: string;
+      };
+      set_meal_favorite: {
+        Args: {
+          p_meal_id: string;
+          p_is_favorite: boolean;
+        };
+        Returns: string;
+      };
+      delete_favorite_meal: {
+        Args: {
+          p_favorite_meal_id: string;
+        };
+        Returns: undefined;
       };
       get_dashboard_summary: {
         Args: Record<string, never>;

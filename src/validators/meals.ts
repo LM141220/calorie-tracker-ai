@@ -16,6 +16,8 @@ export const mealItemInputSchema = z
 export const saveMealInputSchema = z
   .object({
     id: z.string().uuid().nullable().optional(),
+    source_meal_id: z.string().uuid().nullable().optional(),
+    source_favorite_id: z.string().uuid().nullable().optional(),
     meal_name: z.string().trim().min(1).max(200),
     notes: z.string().max(5000).nullable(),
     image_path: z

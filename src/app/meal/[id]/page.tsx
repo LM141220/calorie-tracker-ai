@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { AppHeader } from "@/components/app-header";
 import { DeleteMealButton } from "@/components/meals/delete-meal-button";
+import { FavoriteMealButton } from "@/components/meals/favorite-meal-button";
 import { getOwnedMeal } from "@/features/meals/queries";
 
 export const metadata: Metadata = {
@@ -17,7 +18,8 @@ export default async function MealDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { meal, items, imagePreviewUrl, timezone } = await getOwnedMeal(id);
+  const { meal, items, imagePreviewUrl, timezone, isFavorite } =
+    await getOwnedMeal(id);
 
   if (items.length === 0) {
     notFound();
@@ -71,6 +73,13 @@ export default async function MealDetailPage({
             </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Link
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/meal/new?reuseMeal=${meal.id}`}
+            >
+              Réutiliser
+            </Link>
+            <FavoriteMealButton isFavorite={isFavorite} mealId={meal.id} />
             <Link
               className="inline-flex min-h-11 items-center justify-center rounded-full bg-secondary px-5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               href={`/meal/${meal.id}/edit`}
