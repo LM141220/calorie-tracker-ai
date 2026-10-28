@@ -8,6 +8,10 @@ const IMAGE_BUCKET = "meal-images";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+function isMissingFavoriteTable(error: { code?: string }) {
+  return error.code === "PGRST205" || error.code === "42P01";
+}
+
 async function createMealImagePreview(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   imagePath: string | null,
@@ -52,13 +56,23 @@ export async function getReusableMeals(
     console.error("Recent meals query failed.", recentResult.error);
     throw new Error("Impossible de charger vos repas récents.");
   }
+  let favoritesAvailable = true;
   if (favoriteResult.error) {
-    console.error("Favorite meals query failed.", favoriteResult.error);
-    throw new Error("Impossible de charger vos repas favoris.");
+    if (!isMissingFavoriteTable(favoriteResult.error)) {
+      console.error("Favorite meals query failed.", favoriteResult.error);
+      throw new Error("Impossible de charger vos repas favoris.");
+    }
+    console.error(
+      "Favorite meals are unavailable because their table is missing.",
+      favoriteResult.error,
+    );
+    favoritesAvailable = false;
   }
 
   const recentIds = recentResult.data.map((meal) => meal.id);
-  const favoriteIds = favoriteResult.data.map((meal) => meal.id);
+  const favoriteIds = favoritesAvailable
+    ? (favoriteResult.data ?? []).map((meal) => meal.id)
+    : [];
   const [recentItemsResult, favoriteItemsResult] = await Promise.all([
     recentIds.length
       ? perf.measure("getRecentMealItems", () =>
@@ -82,11 +96,19 @@ export async function getReusableMeals(
     throw new Error("Impossible de charger le détail de vos repas récents.");
   }
   if (favoriteItemsResult.error) {
-    console.error(
-      "Favorite meal items query failed.",
-      favoriteItemsResult.error,
-    );
-    throw new Error("Impossible de charger le détail de vos repas favoris.");
+    if (isMissingFavoriteTable(favoriteItemsResult.error)) {
+      console.error(
+        "Favorite meals are unavailable because their items table is missing.",
+        favoriteItemsResult.error,
+      );
+      favoritesAvailable = false;
+    } else {
+      console.error(
+        "Favorite meal items query failed.",
+        favoriteItemsResult.error,
+      );
+      throw new Error("Impossible de charger le détail de vos repas favoris.");
+    }
   }
 
   const recentCalories = new Map<string, number>();
@@ -113,16 +135,18 @@ export async function getReusableMeals(
       imagePreviewUrl: null,
     })),
   );
-  const favorites = await Promise.all(
-    favoriteResult.data.map(async (meal) => ({
-      id: meal.id,
-      mealName: meal.meal_name,
-      calories: favoriteCalories.get(meal.id) ?? 0,
-      createdAt: meal.created_at,
-      imagePreviewUrl: null,
-    })),
-  );
-  return { recent, favorites };
+  const favorites = favoritesAvailable
+    ? await Promise.all(
+        (favoriteResult.data ?? []).map(async (meal) => ({
+          id: meal.id,
+          mealName: meal.meal_name,
+          calories: favoriteCalories.get(meal.id) ?? 0,
+          createdAt: meal.created_at,
+          imagePreviewUrl: null,
+        })),
+      )
+    : [];
+  return { recent, favorites, favoritesAvailable };
 }
 
 export async function getMealForReuse(

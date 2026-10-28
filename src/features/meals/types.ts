@@ -9,4 +9,5 @@ export type ReusableMeal = {
 export type ReusableMealsData = {
   recent: ReusableMeal[];
   favorites: ReusableMeal[];
+  favoritesAvailable: boolean;
 };

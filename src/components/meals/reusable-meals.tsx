@@ -22,13 +22,18 @@ type ReusableMeal = {
 type ReusableMealsProps = {
   recent: ReusableMeal[];
   favorites: ReusableMeal[];
+  favoritesAvailable: boolean;
 };
 
 const numberFormat = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 0,
 });
 
-export function ReusableMeals({ recent, favorites }: ReusableMealsProps) {
+export function ReusableMeals({
+  recent,
+  favorites,
+  favoritesAvailable,
+}: ReusableMealsProps) {
   usePerformanceMount("ReusableMeals");
   return (
     <section className="space-y-5" aria-label="Réutiliser un repas">
@@ -52,6 +57,15 @@ export function ReusableMeals({ recent, favorites }: ReusableMealsProps) {
       {recent.length === 0 && favorites.length === 0 ? (
         <p className="rounded-2xl bg-background/80 p-4 text-sm text-muted-foreground">
           Tes repas enregistrés apparaîtront ici pour être réutilisés.
+        </p>
+      ) : null}
+      {!favoritesAvailable ? (
+        <p
+          className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-100"
+          role="status"
+        >
+          Les favoris sont momentanément indisponibles. Tes repas récents
+          restent accessibles.
         </p>
       ) : null}
     </section>

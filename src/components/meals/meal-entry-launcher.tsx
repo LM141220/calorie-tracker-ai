@@ -100,6 +100,7 @@ export function MealEntryLauncher({
         {reusableMeals ? (
           <ReusableMeals
             favorites={reusableMeals.favorites}
+            favoritesAvailable={reusableMeals.favoritesAvailable}
             recent={reusableMeals.recent}
           />
         ) : null}

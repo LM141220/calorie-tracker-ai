@@ -148,6 +148,7 @@ export default async function NewMealPage({
             </h1>
           </header>
           <MealEntryLauncher
+            key={showReusable ? "reusable-meals" : "entry-launcher"}
             initialMode={reusableMeals ? "favorites" : undefined}
             reusableMeals={reusableMeals}
           />
