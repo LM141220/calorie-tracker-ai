@@ -11,3 +11,17 @@ export type ReusableMealsData = {
   favorites: ReusableMeal[];
   favoritesAvailable: boolean;
 };
+
+export type ReusableFood = {
+  food_name: string;
+  weight_g: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
+export type ReusableFoodsData = {
+  recent: ReusableFood[];
+  favorites: ReusableFood[];
+};

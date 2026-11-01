@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { AppHeader } from "@/components/app-header";
 import { DeleteMealButton } from "@/components/meals/delete-meal-button";
+import { FavoriteFoodButton } from "@/components/meals/favorite-food-button";
 import { FavoriteMealButton } from "@/components/meals/favorite-meal-button";
 import { getOwnedMeal } from "@/features/meals/queries";
 
@@ -104,6 +105,10 @@ export default async function MealDetailPage({
                     {item.weight_g} g · P {item.protein} g · G {item.carbs} g ·
                     L {item.fat} g
                   </p>
+                  <FavoriteFoodButton
+                    isFavorite={item.isFavorite}
+                    mealItemId={item.id}
+                  />
                 </div>
                 <p className="font-semibold tabular-nums">
                   {Math.round(item.calories)} kcal

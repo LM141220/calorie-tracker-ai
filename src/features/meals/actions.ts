@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { ReusableFood, ReusableFoodsData } from "@/features/meals/types";
 import { saveMealInputSchema } from "@/validators/meals";
 
 const IMAGE_BUCKET = "meal-images";
@@ -14,6 +15,238 @@ export type MealActionResult = {
   message: string;
   mealId?: string;
 };
+
+export type ReusableFoodsActionResult =
+  | { success: true; data: ReusableFoodsData }
+  | { success: false; message: string };
+
+function toReusableFood(food: ReusableFood): ReusableFood {
+  return {
+    food_name: food.food_name,
+    weight_g: Number(food.weight_g),
+    calories: Number(food.calories),
+    protein: Number(food.protein),
+    carbs: Number(food.carbs),
+    fat: Number(food.fat),
+  };
+}
+
+export async function getReusableFoodsAction(): Promise<ReusableFoodsActionResult> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return {
+      success: false,
+      message: "Votre session a expiré. Reconnectez-vous.",
+    };
+  }
+
+  const [mealsResult, favoritesResult] = await Promise.all([
+    supabase
+      .from("meals")
+      .select("id, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("favorite_foods")
+      .select("food_name, weight_g, calories, protein, carbs, fat")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(30),
+  ]);
+  if (mealsResult.error) {
+    console.error(
+      "Reusable food source meals query failed.",
+      mealsResult.error,
+    );
+    return {
+      success: false,
+      message: "Impossible de charger vos aliments récents.",
+    };
+  }
+  if (favoritesResult.error) {
+    console.error(
+      "Reusable foods favorites query failed.",
+      favoritesResult.error,
+    );
+    return {
+      success: false,
+      message: "Impossible de charger vos aliments favoris.",
+    };
+  }
+
+  const meals = mealsResult.data;
+  const recentItemsResult = meals.length
+    ? await supabase
+        .from("meal_items")
+        .select(
+          "meal_id, food_name, weight_g, calories, protein, carbs, fat, created_at",
+        )
+        .in(
+          "meal_id",
+          meals.map((meal) => meal.id),
+        )
+        .order("created_at", { ascending: false })
+    : { data: [], error: null };
+  if (recentItemsResult.error) {
+    console.error(
+      "Reusable recent foods query failed.",
+      recentItemsResult.error,
+    );
+    return {
+      success: false,
+      message: "Impossible de charger vos aliments récents.",
+    };
+  }
+
+  const mealOrder = new Map(meals.map((meal, index) => [meal.id, index]));
+  const seenFoodNames = new Set<string>();
+  const recent = (recentItemsResult.data ?? [])
+    .slice()
+    .sort(
+      (left, right) =>
+        (mealOrder.get(left.meal_id) ?? Number.MAX_SAFE_INTEGER) -
+        (mealOrder.get(right.meal_id) ?? Number.MAX_SAFE_INTEGER),
+    )
+    .filter((item) => {
+      const key = item.food_name.trim().toLocaleLowerCase("fr");
+      if (seenFoodNames.has(key)) {
+        return false;
+      }
+      seenFoodNames.add(key);
+      return true;
+    })
+    .slice(0, 12)
+    .map((item) =>
+      toReusableFood({
+        food_name: item.food_name,
+        weight_g: item.weight_g,
+        calories: item.calories,
+        protein: item.protein,
+        carbs: item.carbs,
+        fat: item.fat,
+      }),
+    );
+
+  return {
+    success: true,
+    data: {
+      recent,
+      favorites: favoritesResult.data.map((food) =>
+        toReusableFood({
+          food_name: food.food_name,
+          weight_g: food.weight_g,
+          calories: food.calories,
+          protein: food.protein,
+          carbs: food.carbs,
+          fat: food.fat,
+        }),
+      ),
+    },
+  };
+}
+
+export async function setFoodFavoriteAction(
+  mealItemId: string,
+  isFavorite: boolean,
+): Promise<MealActionResult> {
+  if (
+    typeof mealItemId !== "string" ||
+    !UUID_PATTERN.test(mealItemId) ||
+    typeof isFavorite !== "boolean"
+  ) {
+    return { success: false, message: "Identifiant d’aliment invalide." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return {
+      success: false,
+      message: "Votre session a expiré. Reconnectez-vous.",
+    };
+  }
+
+  const { data: item, error: itemError } = await supabase
+    .from("meal_items")
+    .select("meal_id, food_name, weight_g, calories, protein, carbs, fat")
+    .eq("id", mealItemId)
+    .maybeSingle();
+  if (itemError) {
+    console.error("Favorite food source lookup failed.", itemError);
+    return { success: false, message: "Impossible de charger cet aliment." };
+  }
+  if (!item) {
+    return { success: false, message: "Cet aliment n’existe plus." };
+  }
+
+  const { data: meal, error: mealError } = await supabase
+    .from("meals")
+    .select("id")
+    .eq("id", item.meal_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (mealError) {
+    console.error("Favorite food ownership check failed.", mealError);
+    return {
+      success: false,
+      message: "Impossible de mettre à jour ce favori.",
+    };
+  }
+  if (!meal) {
+    return { success: false, message: "Cet aliment n’est pas accessible." };
+  }
+
+  let mutationError: { code?: string; message: string } | null = null;
+  if (isFavorite) {
+    const { error } = await supabase.from("favorite_foods").insert({
+      user_id: user.id,
+      food_name: item.food_name,
+      weight_g: item.weight_g,
+      calories: item.calories,
+      protein: item.protein,
+      carbs: item.carbs,
+      fat: item.fat,
+    });
+    mutationError = error;
+  } else {
+    const { error } = await supabase
+      .from("favorite_foods")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("food_name", item.food_name)
+      .eq("weight_g", item.weight_g)
+      .eq("calories", item.calories)
+      .eq("protein", item.protein)
+      .eq("carbs", item.carbs)
+      .eq("fat", item.fat);
+    mutationError = error;
+  }
+
+  if (mutationError && !(isFavorite && mutationError.code === "23505")) {
+    console.error("Favorite food update failed.", mutationError);
+    return {
+      success: false,
+      message: "Impossible de mettre à jour cet aliment favori.",
+    };
+  }
+
+  revalidatePath("/meal/new");
+  revalidatePath(`/meal/${item.meal_id}`);
+  return {
+    success: true,
+    message: isFavorite
+      ? "Aliment ajouté aux favoris."
+      : "Aliment retiré des favoris.",
+  };
+}
 
 async function removeImageIfUnused(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,

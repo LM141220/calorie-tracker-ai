@@ -13,13 +13,14 @@ import {
 } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Search } from "lucide-react";
+import { Heart, Plus, Search } from "lucide-react";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { saveMealAction } from "@/features/meals/actions";
 import { type PortionBaseline } from "@/features/meals/portion-scaling";
+import type { ReusableFood } from "@/features/meals/types";
 import { MealItemList } from "@/components/meals/meal-item-list";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { mealAnalysisSchema } from "@/services/ai/schema";
@@ -49,6 +50,12 @@ const FoodSearchPanel = dynamic(
   () => import("@/components/meals/food-search-panel"),
   {
     loading: () => <div className="h-56 animate-pulse rounded-2xl bg-muted" />,
+  },
+);
+const ReusableFoodsPanel = dynamic(
+  () => import("@/components/meals/reusable-foods-panel"),
+  {
+    loading: () => <div className="h-48 animate-pulse rounded-2xl bg-muted" />,
   },
 );
 const MealSummary = dynamic(() =>
@@ -168,6 +175,8 @@ function MealEditorContent({
   const [hasOpenedTextEntry, setHasOpenedTextEntry] = useState(
     initialEntry === "text",
   );
+  const [isReusableFoodsOpen, setIsReusableFoodsOpen] = useState(false);
+  const [hasOpenedReusableFoods, setHasOpenedReusableFoods] = useState(false);
   const [isSaving, startSaving] = useTransition();
 
   const form = useForm<SaveMealInput>({
@@ -433,6 +442,19 @@ function MealEditorContent({
     setNoticeIsError(false);
   }
 
+  function addReusableFood(food: ReusableFood) {
+    append({
+      food_name: food.food_name,
+      weight_g: food.weight_g,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fat: food.fat,
+    });
+    setNotice(`${food.food_name} ajouté au repas.`);
+    setNoticeIsError(false);
+  }
+
   return (
     <div className="space-y-6">
       {!initialMeal ? (
@@ -519,6 +541,34 @@ function MealEditorContent({
           {notice}
         </p>
       ) : null}
+
+      <div className="space-y-3">
+        <Button
+          className="w-full justify-start gap-2 sm:w-auto"
+          disabled={fields.length >= 50}
+          onClick={() => {
+            const opening = !isReusableFoodsOpen;
+            setIsReusableFoodsOpen(opening);
+            if (opening) {
+              setHasOpenedReusableFoods(true);
+            }
+          }}
+          type="button"
+          variant="outline"
+        >
+          <Heart aria-hidden="true" className="size-4" />
+          Aliments favoris et récents
+        </Button>
+        {hasOpenedReusableFoods ? (
+          <div hidden={!isReusableFoodsOpen}>
+            <ReusableFoodsPanel
+              itemCount={fields.length}
+              onAddFood={addReusableFood}
+              onClose={() => setIsReusableFoodsOpen(false)}
+            />
+          </div>
+        ) : null}
+      </div>
 
       <form
         className="space-y-5"

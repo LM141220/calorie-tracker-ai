@@ -256,6 +256,50 @@ export type Database = {
           >,
         ]
       >;
+      favorite_foods: TableDefinition<
+        {
+          id: string;
+          user_id: string;
+          food_name: string;
+          weight_g: number;
+          calories: number;
+          protein: number;
+          carbs: number;
+          fat: number;
+          created_at: string;
+        },
+        {
+          id?: string;
+          user_id: string;
+          food_name: string;
+          weight_g: number;
+          calories: number;
+          protein?: number;
+          carbs?: number;
+          fat?: number;
+          created_at?: string;
+        },
+        {
+          id?: string;
+          user_id?: string;
+          food_name?: string;
+          weight_g?: number;
+          calories?: number;
+          protein?: number;
+          carbs?: number;
+          fat?: number;
+          created_at?: string;
+        },
+        [
+          Relationship<
+            "favorite_foods_user_id_fkey",
+            ["user_id"],
+            false,
+            "profiles",
+            ["id"]
+          >,
+        ]
+      >;
       meal_items: TableDefinition<
         {
           id: string;

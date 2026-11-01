@@ -3,13 +3,12 @@ import type { ReactNode } from "react";
 
 import { NavigationProfiler } from "@/components/performance/navigation-profiler";
 import { QueryProvider } from "@/components/query-provider";
+import { getMetadataBaseUrl } from "@/lib/supabase/env";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: getMetadataBaseUrl(),
   title: {
     default: "Lumo",
     template: "%s | Lumo",

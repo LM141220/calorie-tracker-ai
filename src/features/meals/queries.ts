@@ -3,6 +3,8 @@ import type { User } from "@supabase/supabase-js";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ServerPagePerformance } from "@/lib/performance/server";
+import { getReusableFoodKey } from "@/features/meals/reusable-foods";
+import type { ReusableFood } from "@/features/meals/types";
 
 const IMAGE_BUCKET = "meal-images";
 const UUID_PATTERN =
@@ -295,29 +297,36 @@ export async function getOwnedMeal(
       notFound();
     }
 
-    const [itemsResult, goalsResult, favoriteResult] = await Promise.all([
-      perf.measure("getMealItems", () =>
-        supabase
-          .from("meal_items")
-          .select("id, food_name, weight_g, calories, protein, carbs, fat")
-          .eq("meal_id", mealId)
-          .order("created_at", { ascending: true }),
-      ),
-      perf.measure("getTimezone", () =>
-        supabase
-          .from("user_goals")
-          .select("timezone")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-      ),
-      perf.measure("getFavoriteStatus", () =>
-        supabase
-          .from("favorite_meals")
-          .select("id")
-          .eq("source_meal_id", mealId)
-          .maybeSingle(),
-      ),
-    ]);
+    const [itemsResult, goalsResult, favoriteResult, favoriteFoodsResult] =
+      await Promise.all([
+        perf.measure("getMealItems", () =>
+          supabase
+            .from("meal_items")
+            .select("id, food_name, weight_g, calories, protein, carbs, fat")
+            .eq("meal_id", mealId)
+            .order("created_at", { ascending: true }),
+        ),
+        perf.measure("getTimezone", () =>
+          supabase
+            .from("user_goals")
+            .select("timezone")
+            .eq("user_id", user.id)
+            .maybeSingle(),
+        ),
+        perf.measure("getFavoriteStatus", () =>
+          supabase
+            .from("favorite_meals")
+            .select("id")
+            .eq("source_meal_id", mealId)
+            .maybeSingle(),
+        ),
+        perf.measure("getFavoriteFoodStatus", () =>
+          supabase
+            .from("favorite_foods")
+            .select("food_name, weight_g, calories, protein, carbs, fat")
+            .eq("user_id", user.id),
+        ),
+      ]);
     const { data: items, error: itemsError } = itemsResult;
 
     if (itemsError) {
@@ -332,10 +341,44 @@ export async function getOwnedMeal(
       console.error("Meal favorite status query failed.", favoriteResult.error);
       throw new Error("Impossible de charger le statut du favori.");
     }
+    if (favoriteFoodsResult.error) {
+      console.error(
+        "Favorite food status query failed.",
+        favoriteFoodsResult.error,
+      );
+      throw new Error("Impossible de charger les aliments favoris.");
+    }
+
+    const favoriteFoodKeys = new Set(
+      favoriteFoodsResult.data.map((food) =>
+        getReusableFoodKey({
+          food_name: food.food_name,
+          weight_g: Number(food.weight_g),
+          calories: Number(food.calories),
+          protein: Number(food.protein),
+          carbs: Number(food.carbs),
+          fat: Number(food.fat),
+        }),
+      ),
+    );
+    const itemsWithFavoriteState = items.map((item) => {
+      const reusableFood: ReusableFood = {
+        food_name: item.food_name,
+        weight_g: Number(item.weight_g),
+        calories: Number(item.calories),
+        protein: Number(item.protein),
+        carbs: Number(item.carbs),
+        fat: Number(item.fat),
+      };
+      return {
+        ...item,
+        isFavorite: favoriteFoodKeys.has(getReusableFoodKey(reusableFood)),
+      };
+    });
 
     const result = {
       meal,
-      items,
+      items: itemsWithFavoriteState,
       timezone: goalsResult.data?.timezone ?? "UTC",
       imagePreviewUrl: await createMealImagePreview(
         supabase,

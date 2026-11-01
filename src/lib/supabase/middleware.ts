@@ -3,6 +3,10 @@ import type { User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 import type { Database } from "@/types/database.types";
+import {
+  isInvalidRefreshTokenError,
+  isMissingAuthSessionError,
+} from "@/lib/supabase/auth-errors";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 export async function updateSupabaseSession(request: NextRequest) {
@@ -16,9 +20,18 @@ export async function updateSupabaseSession(request: NextRequest) {
     requestHeaders.set("x-lumo-request-id", requestId);
   }
   let authDurationMs = 0;
+  let clearInvalidSessionCookies = false;
   const nextResponse = () =>
     NextResponse.next({ request: { headers: requestHeaders } });
   const finalize = (response: NextResponse) => {
+    if (clearInvalidSessionCookies) {
+      for (const { name } of request.cookies.getAll()) {
+        if (/^sb-.+-auth-token(?:\.\d+)?$/.test(name)) {
+          response.cookies.set(name, "", { path: "/", maxAge: 0 });
+        }
+      }
+    }
+
     const durationMs = performance.now() - middlewareStartedAt;
     if (performanceEnabled) {
       response.headers.set("x-lumo-request-id", requestId);
@@ -64,24 +77,13 @@ export async function updateSupabaseSession(request: NextRequest) {
   const authStartedAt = performance.now();
   const authStartedEpoch = Date.now();
   let user: User | null | undefined;
+  let authError: unknown;
   try {
-    ({
-      data: { user },
-    } = await supabase.auth.getUser());
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+    authError = result.error;
   } catch (error: unknown) {
-    if (performanceEnabled) {
-      const durationMs = performance.now() - middlewareStartedAt;
-      console.error(
-        [
-          `[PERF SERVER] middleware failed request=${requestId} path=${request.nextUrl.pathname}`,
-          `start=${new Date(middlewareStartedEpoch).toISOString()}`,
-          `end=${new Date().toISOString()}`,
-          `duration=${durationMs.toFixed(1)}ms`,
-          `error=${error instanceof Error ? error.message : "unknown error"}`,
-        ].join("\n"),
-      );
-    }
-    throw error;
+    authError = error;
   } finally {
     authDurationMs = performance.now() - authStartedAt;
     if (performanceEnabled) {
@@ -95,18 +97,33 @@ export async function updateSupabaseSession(request: NextRequest) {
       );
     }
   }
+
+  const invalidRefreshToken = isInvalidRefreshTokenError(authError);
+  if (invalidRefreshToken) {
+    clearInvalidSessionCookies = true;
+    console.info(
+      "Invalid Supabase refresh token; treating request as signed out.",
+    );
+  } else if (authError && !isMissingAuthSessionError(authError)) {
+    console.error(
+      "Supabase session verification failed; treating request as signed out.",
+      authError,
+    );
+  }
+
   const isAuthPage = ["/login", "/register", "/forgot-password"].includes(
     request.nextUrl.pathname,
   );
+  const isHomePage = request.nextUrl.pathname === "/";
 
-  if (!user && !isAuthPage) {
+  if (!user && !isAuthPage && !isHomePage) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     return finalize(NextResponse.redirect(loginUrl));
   }
 
-  if (user && isAuthPage) {
+  if (user && (isAuthPage || isHomePage)) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
     dashboardUrl.search = "";
