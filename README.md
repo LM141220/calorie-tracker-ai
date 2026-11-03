@@ -1,12 +1,12 @@
 # Lumo
 
-AI-powered nutrition tracking from photos, barcodes, text descriptions and favorite foods.
+AI-powered nutrition tracking from photos, meal descriptions, barcode scans, industrial food search and favorite foods.
 
-Lumo is a mobile-first Progressive Web App designed to reduce the friction of calorie tracking.
+Lumo is a mobile-first Progressive Web App designed to make nutrition tracking fast, flexible and sustainable.
 
-Users can log meals from a photo, a barcode scan, a food search, or previously saved favorites. The application automatically estimates calories and macronutrients, helping users stay aligned with their daily nutrition goals.
+Users can log meals from a photo, a natural language description, a barcode scan, a food search or previously saved favorites. Calories and macronutrients are automatically calculated to help users stay aligned with their nutrition goals.
 
-Built with Next.js, Supabase and Gemini. Used daily in production as a personal nutrition tracking application.
+Built with Next.js, Supabase and Gemini. Actively used every day as a personal nutrition tracking application.
 
 ---
 
@@ -14,11 +14,13 @@ Built with Next.js, Supabase and Gemini. Used daily in production as a personal 
 
 ✅ AI meal analysis from photos
 
+✅ AI meal analysis from natural language descriptions
+
 ✅ Barcode scanning powered by Open Food Facts
 
-✅ Food search and manual entry
+✅ Industrial food search powered by Open Food Facts
 
-✅ Favorite and recently used foods
+✅ Favorite and recent foods
 
 ✅ Daily calorie tracking
 
@@ -28,9 +30,9 @@ Built with Next.js, Supabase and Gemini. Used daily in production as a personal 
 
 ✅ Google OAuth and email authentication
 
-✅ Progressive Web App (PWA)
+✅ Mobile-first Progressive Web App
 
-✅ Mobile-first user experience
+✅ Installable on Android and iOS
 
 ---
 
@@ -38,23 +40,23 @@ Built with Next.js, Supabase and Gemini. Used daily in production as a personal 
 
 ### Dashboard
 
-![Dashboard](docs/screenshots/dashboard.jpg)
+![alt text](docs/screenshots/dashboard.jpg)
 
 ### AI Meal Analysis
 
-![AI Analysis](docs/screenshots/ai-analysis.png)
+REPLACE_WITH_SCREENSHOT
 
 ### Meal History
 
-![History](docs/screenshots/history.png)
+REPLACE_WITH_SCREENSHOT
 
-### Barcode Scanner
+### Barcode Search
 
-![Barcode Scanner](docs/screenshots/barcode-scanner.png)
+REPLACE_WITH_SCREENSHOT
 
 ### Favorites & Recent Foods
 
-![Favorites](docs/screenshots/favorites.png)
+REPLACE_WITH_SCREENSHOT
 
 ---
 
@@ -65,54 +67,65 @@ flowchart LR
 
 User[User]
 
-User --> Photo[Take Photo]
+User --> Photo[Take a Photo]
+User --> Prompt[Describe a Meal]
 User --> Barcode[Scan Barcode]
-User --> Search[Search Food]
+User --> Search[Search Industrial Food]
+User --> Favorite[Favorite or Recent Food]
 
-Photo --> Gemini
-Barcode --> OpenFoodFacts
-Search --> OpenFoodFacts
+Photo --> AI
+Prompt --> AI
 
-Gemini --> Lumo
-OpenFoodFacts --> Lumo
+Barcode --> OFF
+Search --> OFF
 
-Lumo --> Dashboard
-Lumo --> History
-Lumo --> NutritionGoals
+AI[Gemini AI Analysis]
+OFF[Open Food Facts]
+
+AI --> MealBuilder[Meal Builder]
+OFF --> MealBuilder
+Favorite --> MealBuilder
+
+MealBuilder --> Dashboard
+MealBuilder --> History
+MealBuilder --> NutritionGoals
 ```
 
 ---
 
 ## Why Lumo?
 
-Most nutrition tracking applications require users to manually search for every food they consume.
+Most calorie-tracking applications require users to manually search and enter every food item.
 
-Lumo focuses on reducing data entry effort by combining:
+Lumo focuses on reducing friction by providing multiple meal-entry workflows:
 
-- AI-powered meal recognition
+- Photo analysis
+- Natural language descriptions
 - Barcode scanning
-- Smart food search
-- Favorite food shortcuts
-- Mobile-first workflows
+- Industrial food search
+- Favorite and recent foods
 
-The objective is simple: spend less time logging meals and more time focusing on nutrition.
+The objective is simple:
+
+**Spend less time logging meals and more time focusing on nutrition.**
 
 ---
 
 ## Technical Challenges
 
-This project explores several real-world software engineering challenges:
+Lumo explores several real-world software engineering challenges:
 
-- AI meal recognition and nutrition estimation
+- AI-powered meal recognition from images
+- Natural language meal interpretation
+- Nutrition estimation and macronutrient calculations
 - Mobile-first product design
 - Progressive Web App implementation
 - Offline-first considerations
 - Authentication and user management
-- Database security with Row Level Security
-- Food data integration via Open Food Facts
-- Performance optimization on mobile devices
+- Database security through Row Level Security
+- Food data integration through Open Food Facts
+- Performance optimisation for mobile devices
 - Type-safe validation using Zod
-- Production deployment on Vercel
 
 ---
 
@@ -148,8 +161,8 @@ Supabase --> Storage
 | Database | PostgreSQL (Supabase) |
 | Authentication | Supabase Auth, Google OAuth |
 | Security | Row Level Security (RLS) |
-| AI | Gemini, OpenRouter fallback |
-| Food Data | Open Food Facts |
+| AI | Gemini with OpenRouter fallback |
+| Food Database | Open Food Facts |
 | PWA | next-pwa |
 | Hosting | Vercel |
 
@@ -159,21 +172,24 @@ Supabase --> Storage
 
 Lumo is actively maintained and used daily.
 
-Current version includes:
+Current release includes:
 
-- AI meal recognition
+- AI photo analysis
+- AI text-based meal analysis
 - Barcode scanning
-- Meal history
+- Industrial food search
 - Favorites and recent foods
-- PWA installation support
-- Nutrition goal tracking
+- Daily calorie tracking
+- Macronutrient tracking
+- PWA support
+- Google OAuth
 
-Upcoming improvements:
+Planned improvements:
 
-- Gallery import for food photos
-- Improved offline support
+- Gallery photo import
+- Enhanced offline support
 - Advanced analytics
-- Expanded automated testing
+- Additional automated testing
 
 ---
 
