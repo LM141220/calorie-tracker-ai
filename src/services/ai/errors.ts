@@ -9,6 +9,9 @@ export class AIProviderRequestError extends Error {
   constructor(
     readonly provider: string,
     message: string,
+    readonly kind: "network" | "timeout" | "http" | "invalid_response" = "http",
+    readonly statusCode?: number,
+    readonly responseBody?: string,
   ) {
     super(message);
     this.name = "AIProviderRequestError";

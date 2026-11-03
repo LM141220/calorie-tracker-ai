@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { AIConfigurationError, createAIProvider } from "@/services/ai/index";
+import {
+  AIConfigurationError,
+  AIProviderRequestError,
+  AIResponseValidationError,
+  createAIProvider,
+} from "@/services/ai/index";
 import { analyzeTextInputSchema } from "@/validators/meals";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -43,14 +48,42 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(analysis);
   } catch (error: unknown) {
     console.error("Meal text analysis failed.", error);
+    if (
+      error instanceof AIProviderRequestError &&
+      error.responseBody !== undefined
+    ) {
+      console.error("Gemini error response body:", error.responseBody);
+    }
+
+    const isTemporaryGeminiOutage =
+      error instanceof AIProviderRequestError &&
+      error.provider === "Gemini" &&
+      error.statusCode === 503;
+    const isResponseValidationError =
+      error instanceof AIResponseValidationError;
+    const isNetworkError =
+      error instanceof AIProviderRequestError &&
+      (error.kind === "network" || error.kind === "timeout");
+
     return NextResponse.json(
       {
         error:
           error instanceof AIConfigurationError
             ? "Le service d’analyse nutritionnelle n’est pas configuré."
-            : "L’analyse a échoué. Vérifiez la description puis réessayez.",
+            : isTemporaryGeminiOutage
+              ? "Le service d'analyse est temporairement indisponible. Réessayez dans quelques instants."
+              : isResponseValidationError
+                ? "Le service d’analyse a renvoyé une réponse invalide."
+                : isNetworkError
+                  ? "Impossible de joindre le service d’analyse. Réessayez."
+                  : "L’analyse a échoué. Vérifiez la description puis réessayez.",
       },
-      { status: error instanceof AIConfigurationError ? 503 : 502 },
+      {
+        status:
+          error instanceof AIConfigurationError || isTemporaryGeminiOutage
+            ? 503
+            : 502,
+      },
     );
   }
 }

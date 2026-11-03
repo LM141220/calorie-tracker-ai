@@ -131,14 +131,20 @@ export class GeminiProvider implements AIProvider {
           continue;
         }
 
-        const message =
-          error instanceof Error && error.name === "TimeoutError"
-            ? "Gemini request timed out."
-            : "Gemini request could not be completed.";
-        throw new AIProviderRequestError("Gemini", message);
+        const timedOut =
+          error instanceof Error && error.name === "TimeoutError";
+        const message = timedOut
+          ? "Gemini request timed out."
+          : "Gemini request could not be completed.";
+        throw new AIProviderRequestError(
+          "Gemini",
+          message,
+          timedOut ? "timeout" : "network",
+        );
       }
 
       if (!response.ok) {
+        const responseBody = await response.text();
         if (
           RETRYABLE_STATUS_CODES.has(response.status) &&
           attempt < MAX_TRANSIENT_RETRIES
@@ -152,6 +158,9 @@ export class GeminiProvider implements AIProvider {
         throw new AIProviderRequestError(
           "Gemini",
           `Gemini returned HTTP ${response.status}.`,
+          "http",
+          response.status,
+          responseBody,
         );
       }
 
@@ -161,6 +170,7 @@ export class GeminiProvider implements AIProvider {
         throw new AIProviderRequestError(
           "Gemini",
           "Gemini returned an unreadable response.",
+          "invalid_response",
         );
       }
     }
