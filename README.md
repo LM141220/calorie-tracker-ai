@@ -1,121 +1,170 @@
-# Lumo
+<p align="center">
+  <img src="public/icons/lumo-logo.png" width="120" alt="Lumo Logo">
+</p>
 
-AI-powered nutrition tracking from photos, meal descriptions, barcode scans, industrial food search and favorite foods.
+<h1 align="center">Lumo</h1>
 
-Lumo is a mobile-first Progressive Web App designed to make nutrition tracking fast, flexible and sustainable.
+<p align="center">
+  <strong>AI-powered nutrition tracking from photos, meal descriptions, barcode scans and favorite foods.</strong>
+</p>
 
-Users can log meals from a photo, a natural language description, a barcode scan, a food search or previously saved favorites. Calories and macronutrients are automatically calculated to help users stay aligned with their nutrition goals.
+<p align="center">
+  Track calories using the workflow that suits you best.
+</p>
 
-Built with Next.js, Supabase and Gemini. Actively used every day as a personal nutrition tracking application.
+<p align="center">
+  Analyze a meal from a photo, describe it in natural language, scan a barcode, search industrial foods or reuse your favorite foods.
+</p>
+
+<p align="center">
+  Built for daily use, not as a tech demo.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Production-success" />
+  <img src="https://img.shields.io/badge/Mobile-First-success" />
+  <img src="https://img.shields.io/badge/PWA-Installable-purple" />
+  <img src="https://img.shields.io/badge/AI-Gemini-blue" />
+  <img src="https://img.shields.io/badge/Hosting-Vercel-black" />
+</p>
+
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=nextjs,react,ts,supabase,tailwind,vercel" />
+</p>
+
+<p align="center">
+  <a href="https://YOUR_PRODUCTION_URL">
+    <img src="https://img.shields.io/badge/Try%20Lumo-Live%20Demo-success?style=for-the-badge" />
+  </a>
+</p>
 
 ---
 
-## Key Features
+## Overview
 
-✅ AI meal analysis from photos
+Lumo is a mobile-first nutrition tracking Progressive Web App designed to reduce meal logging friction while preserving flexibility.
 
-✅ AI meal analysis from natural language descriptions
+Instead of forcing users into a single workflow, Lumo allows meals to be created through:
 
-✅ Barcode scanning powered by Open Food Facts
+- 📸 AI photo analysis
+- ✍️ Natural language descriptions
+- 📦 Barcode scanning
+- 🔎 Industrial food search
+- ⭐ Favorite and recent foods
 
-✅ Industrial food search powered by Open Food Facts
+Calories, macronutrients and nutrition goals are automatically calculated and tracked.
 
-✅ Favorite and recent foods
+Lumo is actively maintained and used every day in real-world conditions.
 
-✅ Daily calorie tracking
+---
 
-✅ Macronutrient tracking
+## Highlights
 
-✅ Meal history
+- 📱 Mobile-first user experience
+- 🤖 AI meal analysis powered by Gemini
+- 📸 Photo-based food recognition
+- ✍️ Natural language meal descriptions
+- 📦 Barcode scanning with Open Food Facts
+- 🔎 Industrial food search
+- ⭐ Favorite and recent foods
+- 📊 Daily calorie and macro tracking
+- 🔐 Google OAuth and Supabase Auth
+- 🚀 Production deployment on Vercel
+- 📲 Android & iOS installable PWA
 
-✅ Google OAuth and email authentication
+---
 
-✅ Mobile-first Progressive Web App
+## Live Demo
 
-✅ Installable on Android and iOS
+🚀 Production URL
+
+```text
+https://YOUR_PRODUCTION_URL
+```
+
+Create an account directly from the application.
 
 ---
 
 ## Screenshots
 
-### Dashboard
-
 <p align="center">
-  <img src="docs/screenshots/dashboard.jpg" width="300">
+  <img src="docs/screenshots/dashboard.jpg" width="220"/>
+  <img src="docs/screenshots/meal-photo-analysis.jpg" width="220"/>
+  <img src="docs/screenshots/history.jpg" width="220"/>
 </p>
 
-### AI Meal Analysis
+<p align="center">
+  <img src="docs/screenshots/barcode-search.jpg" width="220"/>
+  <img src="docs/screenshots/favorites.jpg" width="220"/>
+  <img src="docs/screenshots/meal-editor.jpg" width="220"/>
+</p>
 
-REPLACE_WITH_SCREENSHOT
+---
 
-### Meal History
+## Real-World Usage
 
-REPLACE_WITH_SCREENSHOT
+Lumo is not a prototype.
 
-### Barcode Search
+The application is actively used on a daily basis for meal tracking, calorie management and nutrition monitoring.
 
-REPLACE_WITH_SCREENSHOT
-
-### Favorites & Recent Foods
-
-REPLACE_WITH_SCREENSHOT
+The product continues to evolve based on real-world usage patterns and everyday feedback.
 
 ---
 
 ## Product Workflow
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 User[User]
 
-User --> Photo[Take a Photo]
-User --> Prompt[Describe a Meal]
-User --> Barcode[Scan Barcode]
-User --> Search[Search Industrial Food]
-User --> Favorite[Favorite or Recent Food]
+User --> Photo[Photo Analysis]
+User --> Text[Meal Description]
+User --> Barcode[Barcode Scan]
+User --> Search[Industrial Food Search]
+User --> Favorites[Favorites & Recent Foods]
 
-Photo --> AI
-Prompt --> AI
+Photo --> Gemini
+Text --> Gemini
 
-Barcode --> OFF
-Search --> OFF
+Barcode --> OpenFoodFacts
+Search --> OpenFoodFacts
 
-AI[Gemini AI Analysis]
-OFF[Open Food Facts]
-
-AI --> MealBuilder[Meal Builder]
-OFF --> MealBuilder
-Favorite --> MealBuilder
+Gemini --> MealBuilder
+OpenFoodFacts --> MealBuilder
+Favorites --> MealBuilder
 
 MealBuilder --> Dashboard
 MealBuilder --> History
-MealBuilder --> NutritionGoals
+MealBuilder --> NutritionTracking
 ```
 
 ---
 
 ## Why Lumo?
 
-Most calorie-tracking applications require users to manually search and enter every food item.
+Most nutrition tracking applications require repetitive manual food entry.
 
-Lumo focuses on reducing friction by providing multiple meal-entry workflows:
+Lumo focuses on reducing logging friction by combining multiple complementary workflows inside a single mobile-first experience.
+
+Users can simply choose the most convenient option:
 
 - Photo analysis
 - Natural language descriptions
 - Barcode scanning
 - Industrial food search
-- Favorite and recent foods
+- Favorite foods
 
-The objective is simple:
+The goal is simple:
 
-**Spend less time logging meals and more time focusing on nutrition.**
+> **Spend less time entering meals and more time focusing on nutrition.**
 
 ---
 
 ## Technical Challenges
 
-Lumo explores several real-world software engineering challenges:
+This project explores several real-world software engineering challenges:
 
 - AI-powered meal recognition from images
 - Natural language meal interpretation
@@ -124,10 +173,10 @@ Lumo explores several real-world software engineering challenges:
 - Progressive Web App implementation
 - Offline-first considerations
 - Authentication and user management
-- Database security through Row Level Security
+- Database security through Row Level Security (RLS)
 - Food data integration through Open Food Facts
 - Performance optimisation for mobile devices
-- Type-safe validation using Zod
+- Type-safe validation through Zod
 
 ---
 
@@ -136,17 +185,19 @@ Lumo explores several real-world software engineering challenges:
 ```mermaid
 flowchart LR
 
-User --> NextJS
+User[Mobile User]
 
-NextJS --> Gemini
+User --> Lumo[Lumo PWA]
 
-NextJS --> OpenFoodFacts
+Lumo --> Gemini[Gemini AI]
 
-NextJS --> Supabase
+Lumo --> OpenFoodFacts[Open Food Facts]
 
-Supabase --> PostgreSQL
-Supabase --> Auth
-Supabase --> Storage
+Lumo --> Supabase
+
+Supabase --> Auth[Supabase Auth]
+Supabase --> DB[(PostgreSQL)]
+Supabase --> Storage[Supabase Storage]
 ```
 
 ---
@@ -157,145 +208,167 @@ Supabase --> Storage
 |--------|--------|
 | Frontend | Next.js 15, React 19, TypeScript |
 | UI | Tailwind CSS, shadcn/ui, Lucide |
-| Forms & Validation | React Hook Form, Zod |
 | State Management | TanStack Query |
-| Backend | Next.js Server Actions |
+| Forms & Validation | React Hook Form, Zod |
+| Backend | Next.js Server Actions & Route Handlers |
 | Database | PostgreSQL (Supabase) |
-| Authentication | Supabase Auth, Google OAuth |
+| Authentication | Supabase Auth & Google OAuth |
 | Security | Row Level Security (RLS) |
 | AI | Gemini with OpenRouter fallback |
-| Food Database | Open Food Facts |
+| Food Data | Open Food Facts |
 | PWA | next-pwa |
 | Hosting | Vercel |
 
 ---
 
-## Project Status
+## Current Features
 
-Lumo is actively maintained and used daily.
-
-Current release includes:
-
-- AI photo analysis
-- AI text-based meal analysis
+- AI meal analysis from photos
+- AI meal analysis from natural language descriptions
 - Barcode scanning
 - Industrial food search
-- Favorites and recent foods
+- Favorite foods
+- Recent foods
 - Daily calorie tracking
 - Macronutrient tracking
-- PWA support
+- Meal history
+- Goal management
 - Google OAuth
-
-Planned improvements:
-
-- Gallery photo import
-- Enhanced offline support
-- Advanced analytics
-- Additional automated testing
+- Email authentication
+- Installable PWA
 
 ---
 
-## Local setup
+## Roadmap
 
-1. Clone the repository and install dependencies:
+### Short-Term
 
-   ```bash
-   git clone <repository-url>
-   cd calorie-tracker-ai
-   npm install
-   ```
+- [ ] Gallery photo import
+- [ ] Improved offline experience
+- [ ] Additional mobile performance optimisations
+- [ ] Expanded automated testing
 
-2. Create `.env.local` in the repository root:
+### Long-Term
 
-   ```dotenv
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
-   NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=<supabase-publishable-or-anon-key>
+- [ ] Advanced nutrition analytics
+- [ ] Enhanced reporting
+- [ ] Food recommendations
+- [ ] Wearable integrations
+- [ ] Broader offline capabilities
 
-   # Configure at least one provider. If both are set, OpenRouter is the
-   # fallback when the primary Gemini provider fails.
-   GEMINI_API_KEY=<gemini-api-key>
-   OPENROUTER_API_KEY=<openrouter-api-key>
-   ```
+---
 
-   `GEMINI_API_KEY` and `OPENROUTER_API_KEY` are server-only secrets. Never
-   prefix these values with `NEXT_PUBLIC_` or commit them. The Supabase
-   publishable/anon key is intended for browser use; authorization is enforced
-   by Supabase Auth and RLS.
+## Requirements
 
-3. Configure Supabase as described below, then start the development server:
+- Node.js 20 LTS or newer
+- npm
+- A Supabase project (hosted or local)
+- A Gemini API key or an OpenRouter API key
 
-   ```bash
-   npm run dev
-   ```
+---
 
-   Open [http://localhost:3000](http://localhost:3000). PWA service worker
-   generation is disabled in development; verify installation behavior using a
-   production build.
+## Local Setup
 
-## Supabase configuration
+### 1. Clone the repository
 
-### Hosted project
+```bash
+git clone <repository-url>
+cd calorie-tracker-ai
+npm install
+```
 
-1. Create a Supabase project and copy its project URL and publishable/anon key
-   into `.env.local`.
-2. Apply the repository migrations in timestamp order. With the Supabase CLI:
+### 2. Create `.env.local`
 
-   ```bash
-   npx supabase login
-   npx supabase link --project-ref <project-ref>
-   npx supabase db push
-   ```
+```dotenv
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-   The migrations create the nutrition schema, access policies, dashboard
-   functions, storage configuration, and reusable-meal tables. Do not execute
-   a migration a second time manually after it has already been applied.
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<supabase-anon-key>
 
-3. In **Authentication → URL Configuration**, set the Site URL to
-   `http://localhost:3000` for local work and add the production application
-   URL. Add the OAuth callback URL:
+# Configure at least one provider
+GEMINI_API_KEY=<gemini-api-key>
+OPENROUTER_API_KEY=<openrouter-api-key>
+```
 
-   ```text
-   http://localhost:3000/auth/callback
-   https://<production-domain>/auth/callback
-   ```
+`GEMINI_API_KEY` and `OPENROUTER_API_KEY` are server-side secrets and should never be exposed publicly.
 
-4. To enable Google sign-in, configure the Google provider in Supabase Auth and
-   register Supabase's OAuth callback URL in Google Cloud:
+### 3. Start the application
 
-   ```text
-   https://<project-ref>.supabase.co/auth/v1/callback
-   ```
+```bash
+npm run dev
+```
 
-   Also configure the allowed redirect URLs in Supabase.
+Open:
 
-### Local Supabase (optional)
+```text
+http://localhost:3000
+```
 
-The repository includes `supabase/config.toml` and a seed file. With Docker and
-the Supabase CLI installed, start the local stack and apply migrations:
+---
+
+## Supabase Configuration
+
+### Hosted Project
+
+```bash
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npx supabase db push
+```
+
+Configure the following callback URLs:
+
+```text
+http://localhost:3000/auth/callback
+https://<production-domain>/auth/callback
+```
+
+### Local Supabase
 
 ```bash
 npx supabase start
 npx supabase migration up --local
 ```
 
-Use the local API URL and anon key printed by the CLI in `.env.local`. Stop the
-local services with `npx supabase stop`.
+Stop services:
 
-## AI provider configuration
+```bash
+npx supabase stop
+```
 
-Configure at least one server-side key:
+---
 
-- `GEMINI_API_KEY`: primary provider; currently uses
-  `gemini-3.1-flash-lite`.
-- `OPENROUTER_API_KEY`: OpenRouter provider; currently uses
-  `google/gemini-2.0-flash-001`.
+## AI Provider Configuration
 
-When both are configured, Lumo tries Gemini first and falls back to OpenRouter
-on provider failure. AI credentials are read only by server-side code in
-`src/services/ai/`.
+### Primary Provider
 
-## Production build
+```text
+GEMINI_API_KEY
+```
+
+Current model:
+
+```text
+gemini-3.1-flash-lite
+```
+
+### Fallback Provider
+
+```text
+OPENROUTER_API_KEY
+```
+
+Current model:
+
+```text
+google/gemini-2.0-flash-001
+```
+
+If both providers are configured, Gemini is used first and OpenRouter is used as fallback.
+
+---
+
+## Production Build
 
 ```bash
 npm run typecheck
@@ -304,80 +377,45 @@ npm run build
 npm run start
 ```
 
-The production server is available at [http://localhost:3000](http://localhost:3000).
-The PWA plugin generates `public/sw.js` and related Workbox assets during
-production builds; treat those files as generated output rather than editing
-them by hand.
+---
 
-## Vercel deployment
+## Deployment
 
-1. Import the repository into Vercel and select the Next.js framework
-   preset. The standard `npm run build` command is used by the project.
-2. Add these environment variables to the Vercel environments where they are
-   needed:
+### Vercel
 
-   ```text
-   NEXT_PUBLIC_APP_URL=https://<production-domain>
-   NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=<supabase-publishable-or-anon-key>
-   GEMINI_API_KEY=<gemini-api-key>
-   OPENROUTER_API_KEY=<openrouter-api-key>
-   ```
+1. Import the repository into Vercel.
+2. Configure environment variables.
+3. Deploy the project.
+4. Add production callback URLs to Supabase Authentication.
 
-   At least one AI key is required for meal analysis. Add the production
-   domain, including `/auth/callback`, to Supabase's allowed redirect URLs.
+Installable PWA functionality requires HTTPS.
 
-3. Deploy. Installable PWA behavior requires HTTPS; Vercel provides HTTPS for
-   deployed domains.
-4. On iOS, open the deployed site in Safari and use **Share → Add to Home
-   Screen**. On Android, install from the browser's install prompt or menu.
+---
 
-## PWA identity and updates
-
-The web app manifest is generated by `src/app/manifest.ts`; browser, Open Graph,
-and Apple web app metadata live in `src/app/layout.tsx`. Icons are in
-`public/icons/`. The Profile → Application section displays the build version,
-checks the registered service worker for an update, and provides platform
-specific reinstall instructions.
-
-Mobile operating systems can retain an installed app's name and icon from its
-original installation. If an updated icon or name does not appear after a
-deployment, update/reload the service worker first. If the launcher still shows
-the old branding, remove the old home-screen installation and install Lumo
-again from the current HTTPS site. Removing the shortcut does not remove the
-user's Supabase account or saved meals.
-
-## Source layout
+## Source Layout
 
 ```text
 src/
-├── app/          App Router pages, metadata, manifest, and API route handlers
-├── components/   Shared UI and feature-specific React components
-├── features/     Auth, dashboard, goals, history, and meal actions/queries
-├── hooks/        Shared React hooks
-├── lib/          Supabase clients, auth helpers, and performance utilities
-├── services/     AI providers and food lookup integrations
-├── types/        TypeScript and database types
-└── validators/   Zod schemas for request and form validation
+├── app/
+├── components/
+├── features/
+├── hooks/
+├── lib/
+├── services/
+├── types/
+└── validators/
 
 supabase/
-├── migrations/   PostgreSQL schema, functions, storage, and RLS policies
-└── seed.sql      Local development seed data
+├── migrations/
+└── seed.sql
 ```
 
-## Development roadmap
-
-- [ ] Add product screenshots and a short installation walkthrough.
-- [ ] Complete authenticated mobile performance measurements for common
-      navigation paths.
-- [ ] Validate app name and icon updates across current Android and iOS
-      versions.
-- [ ] Evaluate broader offline support and cache behavior with explicit
-      privacy and freshness requirements.
-- [ ] Expand automated coverage for meal reuse and portion adjustment.
+---
 
 ## License
 
-**All rights reserved.** No open-source license is granted. You may not
-redistribute, modify, or use this software without prior written permission
-from the copyright holder.
+**All rights reserved.**
+
+No open-source license is granted.
+
+You may not redistribute, modify or use this software without prior written permission from the copyright holder.
