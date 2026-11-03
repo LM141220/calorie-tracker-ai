@@ -33,7 +33,7 @@
 </p>
 
 <p align="center">
-  <a href="https://YOUR_PRODUCTION_URL">
+  <a href="https://calorie-tracker-ai-jet.vercel.app/">
     <img src="https://img.shields.io/badge/Try%20Lumo-Live%20Demo-success?style=for-the-badge" />
   </a>
 </p>
@@ -79,7 +79,7 @@ Lumo is actively maintained and used every day in real-world conditions.
 🚀 Production URL
 
 ```text
-https://YOUR_PRODUCTION_URL
+https://calorie-tracker-ai-jet.vercel.app/
 ```
 
 Create an account directly from the application.
