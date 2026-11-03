@@ -40,7 +40,9 @@ Built with Next.js, Supabase and Gemini. Actively used every day as a personal n
 
 ### Dashboard
 
-![alt text](docs/screenshots/dashboard.jpg)
+<p align="center">
+  <img src="docs/screenshots/dashboard.jpg" width="300">
+</p>
 
 ### AI Meal Analysis
 
