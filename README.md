@@ -1,54 +1,181 @@
 # Lumo
 
-Lumo is a mobile-first nutrition tracking PWA for quickly recording meals and
-keeping daily calorie goals in view. Meals can be entered from a photo, a text
-description, a food search, or an existing favorite/recent meal.
+AI-powered nutrition tracking from photos, barcodes, text descriptions and favorite foods.
 
-> **Project status:** active product development. Features and deployment
-> configuration may evolve.
+Lumo is a mobile-first Progressive Web App designed to reduce the friction of calorie tracking.
+
+Users can log meals from a photo, a barcode scan, a food search, or previously saved favorites. The application automatically estimates calories and macronutrients, helping users stay aligned with their daily nutrition goals.
+
+Built with Next.js, Supabase and Gemini. Used daily in production as a personal nutrition tracking application.
+
+---
+
+## Key Features
+
+✅ AI meal analysis from photos
+
+✅ Barcode scanning powered by Open Food Facts
+
+✅ Food search and manual entry
+
+✅ Favorite and recently used foods
+
+✅ Daily calorie tracking
+
+✅ Macronutrient tracking
+
+✅ Meal history
+
+✅ Google OAuth and email authentication
+
+✅ Progressive Web App (PWA)
+
+✅ Mobile-first user experience
+
+---
 
 ## Screenshots
 
-Product screenshots can be added to `docs/screenshots/` and linked here:
+### Dashboard
 
-| Screen                   | Screenshot                       |
-| ------------------------ | -------------------------------- |
-| Dashboard                | `docs/screenshots/dashboard.png` |
-| Add a meal               | `docs/screenshots/add-meal.png`  |
-| Meal history             | `docs/screenshots/history.png`   |
-| Profile and app settings | `docs/screenshots/profile.png`   |
+![Dashboard](docs/screenshots/dashboard.png)
 
-## Features
+### AI Meal Analysis
 
-- Email and password authentication, password reset, and Google OAuth through
-  Supabase Auth.
-- Daily calories remaining, progress, macronutrients, and trends.
-- Meal analysis from a photo or text using Gemini, with OpenRouter fallback.
-- Food lookup through Open Food Facts and barcode scanning.
-- Editable food entries with instant proportional portion and macro updates.
-- Meal history, meal editing, and deletion.
-- Recent meals and favorites that can be reused as new meal entries.
-- User-configurable nutrition goals and timezone.
-- Installable Android and iOS PWA with partial offline fallback.
+![AI Analysis](docs/screenshots/ai-analysis.png)
 
-## Technology
+### Meal History
 
-- **Application:** Next.js 15 App Router, React 19, TypeScript
-- **UI:** Tailwind CSS, shadcn/ui-style components, Lucide icons
-- **Forms and validation:** React Hook Form, Zod
-- **Client cache:** TanStack Query (currently used for the Dashboard prototype)
-- **Backend:** Next.js Server Actions and Route Handlers
-- **Database and identity:** Supabase PostgreSQL, Supabase Auth, Row Level
-  Security, Supabase Storage
-- **Nutrition analysis:** Gemini, with OpenRouter fallback
-- **PWA and deployment:** `@ducanh2912/next-pwa`, Vercel
+![History](docs/screenshots/history.png)
 
-## Requirements
+### Barcode Scanner
 
-- Node.js 20 LTS or newer
-- npm
-- A Supabase project (hosted or local)
-- A Gemini API key or an OpenRouter API key to use AI meal analysis
+![Barcode Scanner](docs/screenshots/barcode-scanner.png)
+
+### Favorites & Recent Foods
+
+![Favorites](docs/screenshots/favorites.png)
+
+---
+
+## Product Workflow
+
+```mermaid
+flowchart LR
+
+User[User]
+
+User --> Photo[Take Photo]
+User --> Barcode[Scan Barcode]
+User --> Search[Search Food]
+
+Photo --> Gemini
+Barcode --> OpenFoodFacts
+Search --> OpenFoodFacts
+
+Gemini --> Lumo
+OpenFoodFacts --> Lumo
+
+Lumo --> Dashboard
+Lumo --> History
+Lumo --> NutritionGoals
+```
+
+---
+
+## Why Lumo?
+
+Most nutrition tracking applications require users to manually search for every food they consume.
+
+Lumo focuses on reducing data entry effort by combining:
+
+- AI-powered meal recognition
+- Barcode scanning
+- Smart food search
+- Favorite food shortcuts
+- Mobile-first workflows
+
+The objective is simple: spend less time logging meals and more time focusing on nutrition.
+
+---
+
+## Technical Challenges
+
+This project explores several real-world software engineering challenges:
+
+- AI meal recognition and nutrition estimation
+- Mobile-first product design
+- Progressive Web App implementation
+- Offline-first considerations
+- Authentication and user management
+- Database security with Row Level Security
+- Food data integration via Open Food Facts
+- Performance optimization on mobile devices
+- Type-safe validation using Zod
+- Production deployment on Vercel
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+
+User --> NextJS
+
+NextJS --> Gemini
+
+NextJS --> OpenFoodFacts
+
+NextJS --> Supabase
+
+Supabase --> PostgreSQL
+Supabase --> Auth
+Supabase --> Storage
+```
+
+---
+
+## Technology Stack
+
+| Area | Technology |
+|--------|--------|
+| Frontend | Next.js 15, React 19, TypeScript |
+| UI | Tailwind CSS, shadcn/ui, Lucide |
+| Forms & Validation | React Hook Form, Zod |
+| State Management | TanStack Query |
+| Backend | Next.js Server Actions |
+| Database | PostgreSQL (Supabase) |
+| Authentication | Supabase Auth, Google OAuth |
+| Security | Row Level Security (RLS) |
+| AI | Gemini, OpenRouter fallback |
+| Food Data | Open Food Facts |
+| PWA | next-pwa |
+| Hosting | Vercel |
+
+---
+
+## Project Status
+
+Lumo is actively maintained and used daily.
+
+Current version includes:
+
+- AI meal recognition
+- Barcode scanning
+- Meal history
+- Favorites and recent foods
+- PWA installation support
+- Nutrition goal tracking
+
+Upcoming improvements:
+
+- Gallery import for food photos
+- Improved offline support
+- Advanced analytics
+- Expanded automated testing
+
+---
 
 ## Local setup
 
