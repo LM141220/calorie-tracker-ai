@@ -1,5 +1,6 @@
 import "server-only";
 
+import { notFound, redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
 import type { AccountApprovalStatus } from "@/types/database.types";
@@ -54,4 +55,24 @@ export async function getApprovedUser(
 ): Promise<User | null> {
   const access = await getCurrentAccountAccess(supabase);
   return access.approvalStatus === "approved" ? access.user : null;
+}
+
+export async function requireApprovedAccount(supabase?: SupabaseServerClient) {
+  const access = await getCurrentAccountAccess(supabase);
+  if (!access.user) {
+    redirect("/login");
+  }
+  if (access.approvalStatus !== "approved") {
+    redirect("/account-status");
+  }
+
+  return { user: access.user, isAdmin: access.isAdmin };
+}
+
+export async function requireAdminAccount(supabase?: SupabaseServerClient) {
+  const access = await requireApprovedAccount(supabase);
+  if (!access.isAdmin) {
+    notFound();
+  }
+  return access;
 }

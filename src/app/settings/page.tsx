@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { AppHeader } from "@/components/app-header";
 import { SettingsForm } from "@/components/goals/settings-form";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApprovedAccount } from "@/lib/auth/account-access";
 
 export const metadata: Metadata = {
   title: "Objectifs",
@@ -11,14 +11,7 @@ export const metadata: Metadata = {
 
 export default async function SettingsPage() {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    redirect("/login");
-  }
+  const { user } = await requireApprovedAccount(supabase);
 
   const { data: goals, error } = await supabase
     .from("user_goals")

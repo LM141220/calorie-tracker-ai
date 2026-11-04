@@ -1,7 +1,6 @@
-import { redirect } from "next/navigation";
-
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ServerPagePerformance } from "@/lib/performance/server";
+import { requireApprovedAccount } from "@/lib/auth/account-access";
 
 const IMAGE_BUCKET = "meal-images";
 export const HISTORY_PAGE_SIZE = 20;
@@ -14,14 +13,7 @@ export async function getMealHistory(
   const perf = performanceTrace ?? new ServerPagePerformance("History");
   try {
     const supabase = await createSupabaseServerClient(perf);
-    const {
-      data: { user },
-      error: authError,
-    } = await perf.measure("auth.getUser", () => supabase.auth.getUser());
-
-    if (authError || !user) {
-      redirect("/login");
-    }
+    const { user } = await requireApprovedAccount(supabase);
 
     const from = (page - 1) * HISTORY_PAGE_SIZE;
     const to = from + HISTORY_PAGE_SIZE - 1;

@@ -1,8 +1,9 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ServerPagePerformance } from "@/lib/performance/server";
+import { requireApprovedAccount } from "@/lib/auth/account-access";
 import { getReusableFoodKey } from "@/features/meals/reusable-foods";
 import type { ReusableFood } from "@/features/meals/types";
 
@@ -273,13 +274,7 @@ export async function getOwnedMeal(
     }
 
     const supabase = await createSupabaseServerClient(perf);
-    const {
-      data: { user },
-      error: authError,
-    } = await perf.measure("auth.getUser", () => supabase.auth.getUser());
-    if (authError || !user) {
-      redirect("/login");
-    }
+    const { user } = await requireApprovedAccount(supabase);
 
     const { data: meal, error: mealError } = await perf.measure("getMeal", () =>
       supabase

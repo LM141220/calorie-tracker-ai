@@ -13,7 +13,8 @@ import {
 } from "@/features/meals/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ServerPagePerformance } from "@/lib/performance/server";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { requireApprovedAccount } from "@/lib/auth/account-access";
 
 export const metadata: Metadata = {
   title: "Ajouter un repas",
@@ -40,14 +41,7 @@ export default async function NewMealPage({
     }
 
     const supabase = await createSupabaseServerClient(perf);
-    const {
-      data: { user },
-      error,
-    } = await perf.measure("auth.getUser", () => supabase.auth.getUser());
-
-    if (error || !user) {
-      redirect("/login");
-    }
+    const { user } = await requireApprovedAccount(supabase);
 
     if (reuseMeal) {
       const { meal, items, imagePreviewUrl } = await getMealForReuse(

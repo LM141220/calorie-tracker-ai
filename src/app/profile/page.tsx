@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { ArrowRight, UserRound } from "lucide-react";
 
@@ -8,6 +7,7 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { AppHeader } from "@/components/app-header";
 import { ApplicationManagement } from "@/components/pwa/application-management";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApprovedAccount } from "@/lib/auth/account-access";
 
 export const metadata: Metadata = {
   title: "Profil",
@@ -15,25 +15,7 @@ export const metadata: Metadata = {
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    redirect("/login");
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profileError || !profile) {
-    console.error("Profile page administrator lookup failed.", profileError);
-    throw new Error("Impossible de charger votre profil.");
-  }
+  const { user, isAdmin } = await requireApprovedAccount(supabase);
 
   return (
     <main className="min-h-screen bg-muted/30">
@@ -60,7 +42,7 @@ export default async function ProfilePage() {
           </div>
 
           <div className="px-4 pb-4">
-            {profile.is_admin ? (
+            {isAdmin ? (
               <Link
                 className="flex min-h-14 items-center justify-between rounded-2xl px-3 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 href="/admin/approvals"

@@ -1,21 +1,13 @@
-import { redirect } from "next/navigation";
-
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ServerPagePerformance } from "@/lib/performance/server";
 import { dashboardSummarySchema } from "@/features/dashboard/schema";
+import { requireApprovedAccount } from "@/lib/auth/account-access";
 
 export async function getDashboardData() {
   const perf = new ServerPagePerformance("Dashboard");
   try {
     const supabase = await createSupabaseServerClient(perf);
-    const {
-      data: { user },
-      error: authError,
-    } = await perf.measure("auth.getUser", () => supabase.auth.getUser());
-
-    if (authError || !user) {
-      redirect("/login");
-    }
+    const { user } = await requireApprovedAccount(supabase);
 
     const [goalResult, summaryResult] = await Promise.all([
       perf.measure("getGoals", () =>

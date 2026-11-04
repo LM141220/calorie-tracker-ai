@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 
 import { ApprovalRequestActions } from "@/components/admin/approval-request-actions";
 import { AppHeader } from "@/components/app-header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getCurrentAccountAccess } from "@/lib/auth/account-access";
+import { requireAdminAccount } from "@/lib/auth/account-access";
 
 export const metadata: Metadata = {
   title: "Demandes d’accès",
@@ -13,17 +12,7 @@ export const metadata: Metadata = {
 
 export default async function AccountApprovalsPage() {
   const supabase = await createSupabaseServerClient();
-  const access = await getCurrentAccountAccess(supabase);
-
-  if (!access.user) {
-    redirect("/login");
-  }
-  if (access.approvalStatus !== "approved") {
-    redirect("/account-status");
-  }
-  if (!access.isAdmin) {
-    notFound();
-  }
+  await requireAdminAccount(supabase);
 
   const [pendingResult, eventsResult] = await Promise.all([
     supabase

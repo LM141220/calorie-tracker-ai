@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { getMealHistory } from "@/features/history/queries";
 import { ServerPagePerformance } from "@/lib/performance/server";
+import { requireApprovedAccount } from "@/lib/auth/account-access";
 
 export const metadata: Metadata = {
   title: "Historique des repas",
@@ -19,6 +20,7 @@ export default async function HistoryPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const requestHeaders = await headers();
+  await requireApprovedAccount();
   const perf = new ServerPagePerformance(
     "HistoryPage",
     requestHeaders.get("x-lumo-request-id") ?? crypto.randomUUID(),
