@@ -8,13 +8,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/",
-    "/dashboard/:path*",
-    "/history/:path*",
-    "/settings/:path*",
-    "/meal/:path*",
-    "/login",
-    "/register",
-    "/forgot-password",
+    "/((?!_next|favicon.ico|sw.js|workbox-.*\\.js|fallback-.*\\.js|icons/.*|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|svg|webp|ico|css|js|woff2?)$).*)",
   ],
 };

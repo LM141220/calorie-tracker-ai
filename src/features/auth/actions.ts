@@ -10,6 +10,8 @@ import {
 } from "@/validators/auth";
 import { getAppUrl } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentAccountAccess } from "@/lib/auth/account-access";
+import { notifyAdminOfSignup } from "@/services/notifications/signup-notification";
 
 export type AuthActionResult = {
   success: boolean;
@@ -37,6 +39,18 @@ export async function loginAction(input: {
       success: false,
       message:
         "Connexion impossible. Vérifiez vos identifiants puis réessayez.",
+    };
+  }
+
+  const access = await getCurrentAccountAccess(supabase);
+  if (access.approvalStatus !== "approved") {
+    return {
+      success: true,
+      message:
+        access.approvalStatus === "rejected"
+          ? "Votre demande d’accès n’a pas été approuvée."
+          : "Votre compte est en attente d’approbation.",
+      redirectTo: "/account-status",
     };
   }
 
@@ -77,18 +91,26 @@ export async function registerAction(input: {
     };
   }
 
+  if (data.user?.identities?.length) {
+    await notifyAdminOfSignup({
+      email: data.user.email ?? parsed.data.email,
+      userId: data.user.id,
+      requestedAt: data.user.created_at,
+    });
+  }
+
   if (!data.session) {
     return {
       success: true,
       message:
-        "Compte créé. Consultez votre e-mail pour confirmer votre inscription.",
+        "Demande créée. Confirmez votre adresse e-mail ; l’accès sera disponible après validation.",
     };
   }
 
   return {
     success: true,
-    message: "Compte créé avec succès.",
-    redirectTo: "/dashboard",
+    message: "Votre demande d’accès a été créée.",
+    redirectTo: "/account-status",
   };
 }
 

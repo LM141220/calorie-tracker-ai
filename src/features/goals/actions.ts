@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { goalSettingsSchema } from "@/validators/goals";
+import { getApprovedUser } from "@/lib/auth/account-access";
 
 export type GoalActionResult = {
   success: boolean;
@@ -29,15 +30,11 @@ export async function saveGoalSettingsAction(
   }
 
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  const user = await getApprovedUser(supabase);
+  if (!user) {
     return {
       success: false,
-      message: "Votre session a expiré. Reconnectez-vous.",
+      message: "Votre compte doit être approuvé pour utiliser cette fonction.",
     };
   }
 

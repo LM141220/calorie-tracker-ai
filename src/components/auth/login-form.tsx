@@ -37,7 +37,11 @@ export function LoginForm() {
 
       if (result.success && result.redirectTo) {
         const nextPath = getSafeRedirectPath(searchParams.get("next"));
-        router.replace(nextPath);
+        router.replace(
+          result.redirectTo === "/account-status"
+            ? result.redirectTo
+            : nextPath,
+        );
         router.refresh();
       }
     });

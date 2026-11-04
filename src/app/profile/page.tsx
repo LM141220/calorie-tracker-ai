@@ -24,6 +24,17 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError || !profile) {
+    console.error("Profile page administrator lookup failed.", profileError);
+    throw new Error("Impossible de charger votre profil.");
+  }
+
   return (
     <main className="min-h-screen bg-muted/30">
       <AppHeader />
@@ -49,6 +60,18 @@ export default async function ProfilePage() {
           </div>
 
           <div className="px-4 pb-4">
+            {profile.is_admin ? (
+              <Link
+                className="flex min-h-14 items-center justify-between rounded-2xl px-3 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                href="/admin/approvals"
+              >
+                Administration des comptes
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-4 text-muted-foreground"
+                />
+              </Link>
+            ) : null}
             <Link
               className="flex min-h-14 items-center justify-between rounded-2xl px-3 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               href="/settings"

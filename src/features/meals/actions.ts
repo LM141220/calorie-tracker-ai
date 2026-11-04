@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ReusableFood, ReusableFoodsData } from "@/features/meals/types";
 import { saveMealInputSchema } from "@/validators/meals";
+import { getApprovedUser } from "@/lib/auth/account-access";
 
 const IMAGE_BUCKET = "meal-images";
 const UUID_PATTERN =
@@ -33,14 +34,11 @@ function toReusableFood(food: ReusableFood): ReusableFood {
 
 export async function getReusableFoodsAction(): Promise<ReusableFoodsActionResult> {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const user = await getApprovedUser(supabase);
+  if (!user) {
     return {
       success: false,
-      message: "Votre session a expiré. Reconnectez-vous.",
+      message: "Votre compte doit être approuvé pour utiliser cette fonction.",
     };
   }
 
@@ -163,14 +161,11 @@ export async function setFoodFavoriteAction(
   }
 
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const user = await getApprovedUser(supabase);
+  if (!user) {
     return {
       success: false,
-      message: "Votre session a expiré. Reconnectez-vous.",
+      message: "Votre compte doit être approuvé pour utiliser cette fonction.",
     };
   }
 
@@ -296,15 +291,11 @@ export async function saveMealAction(
   }
 
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  const user = await getApprovedUser(supabase);
+  if (!user) {
     return {
       success: false,
-      message: "Votre session a expiré. Reconnectez-vous.",
+      message: "Votre compte doit être approuvé pour utiliser cette fonction.",
     };
   }
 
@@ -399,14 +390,11 @@ export async function setMealFavoriteAction(
   }
 
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const user = await getApprovedUser(supabase);
+  if (!user) {
     return {
       success: false,
-      message: "Votre session a expiré. Reconnectez-vous.",
+      message: "Votre compte doit être approuvé pour utiliser cette fonction.",
     };
   }
 
@@ -462,14 +450,11 @@ export async function removeFavoriteMealAction(
   }
 
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const user = await getApprovedUser(supabase);
+  if (!user) {
     return {
       success: false,
-      message: "Votre session a expiré. Reconnectez-vous.",
+      message: "Votre compte doit être approuvé pour utiliser cette fonction.",
     };
   }
 
@@ -521,15 +506,11 @@ export async function deleteMealAction(
   }
 
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  const user = await getApprovedUser(supabase);
+  if (!user) {
     return {
       success: false,
-      message: "Votre session a expiré. Reconnectez-vous.",
+      message: "Votre compte doit être approuvé pour utiliser cette fonction.",
     };
   }
 

@@ -111,19 +111,98 @@ export async function updateSupabaseSession(request: NextRequest) {
     );
   }
 
+  const pathname = request.nextUrl.pathname;
+  const isApiRequest = pathname.startsWith("/api/");
   const isAuthPage = ["/login", "/register", "/forgot-password"].includes(
-    request.nextUrl.pathname,
+    pathname,
   );
-  const isHomePage = request.nextUrl.pathname === "/";
+  const isHomePage = pathname === "/";
+  const isCallback = pathname === "/auth/callback";
+  const isPasswordUpdate = pathname === "/auth/update-password";
+  const isOfflinePage = pathname === "/offline";
+  const isAccountStatusPage = pathname === "/account-status";
+  const isPublicPage =
+    isAuthPage || isHomePage || isCallback || isPasswordUpdate || isOfflinePage;
 
-  if (!user && !isAuthPage && !isHomePage) {
+  if (!user && isCallback) {
+    return finalize(response);
+  }
+
+  if (!user && !isPublicPage) {
+    if (isApiRequest) {
+      return finalize(
+        NextResponse.json(
+          { error: "Authentification requise." },
+          { status: 401 },
+        ),
+      );
+    }
+
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     return finalize(NextResponse.redirect(loginUrl));
   }
 
-  if (user && (isAuthPage || isHomePage)) {
+  if (!user) {
+    return finalize(response);
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("approval_status, is_admin")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError || !profile) {
+    console.error("Middleware account approval lookup failed.", profileError);
+    if (isApiRequest) {
+      return finalize(
+        NextResponse.json(
+          { error: "Impossible de vérifier l’accès au compte." },
+          { status: 503 },
+        ),
+      );
+    }
+    if (isCallback || isAccountStatusPage || isPasswordUpdate) {
+      return finalize(response);
+    }
+    return finalize(
+      NextResponse.redirect(new URL("/account-status", request.url)),
+    );
+  }
+
+  if (profile.approval_status !== "approved") {
+    if (isApiRequest) {
+      return finalize(
+        NextResponse.json(
+          { error: "Votre compte doit être approuvé pour utiliser Lumo." },
+          { status: 403 },
+        ),
+      );
+    }
+    if (
+      isCallback ||
+      isAccountStatusPage ||
+      isPasswordUpdate ||
+      isOfflinePage
+    ) {
+      return finalize(response);
+    }
+    return finalize(
+      NextResponse.redirect(new URL("/account-status", request.url)),
+    );
+  }
+
+  if (isAccountStatusPage) {
+    return finalize(NextResponse.redirect(new URL("/dashboard", request.url)));
+  }
+
+  if (pathname.startsWith("/admin") && !profile.is_admin) {
+    return finalize(NextResponse.redirect(new URL("/dashboard", request.url)));
+  }
+
+  if (isAuthPage || isHomePage) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
     dashboardUrl.search = "";

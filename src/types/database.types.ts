@@ -16,6 +16,8 @@ export type ActivityLevel =
   | "extra_active";
 
 export type NutritionGoal = "lose_weight" | "maintain_weight" | "gain_muscle";
+export type AccountApprovalStatus = "pending" | "approved" | "rejected";
+export type AccountApprovalEventType = "requested" | "approved" | "rejected";
 
 type Relationship<
   ForeignKeyName extends string,
@@ -46,17 +48,77 @@ export type Database = {
           id: string;
           email: string;
           created_at: string;
+          approval_status: AccountApprovalStatus;
+          requested_at: string;
+          approved_at: string | null;
+          approved_by: string | null;
+          rejected_at: string | null;
+          is_admin: boolean;
         },
         {
           id: string;
           email?: string;
           created_at?: string;
+          approval_status?: AccountApprovalStatus;
+          requested_at?: string;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          rejected_at?: string | null;
+          is_admin?: boolean;
         },
         {
           id?: string;
           email?: string;
           created_at?: string;
+          approval_status?: AccountApprovalStatus;
+          requested_at?: string;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          rejected_at?: string | null;
+          is_admin?: boolean;
         }
+      >;
+      account_approval_events: TableDefinition<
+        {
+          id: string;
+          profile_id: string;
+          event_type: AccountApprovalEventType;
+          actor_id: string | null;
+          comment: string | null;
+          created_at: string;
+        },
+        {
+          id?: string;
+          profile_id: string;
+          event_type: AccountApprovalEventType;
+          actor_id?: string | null;
+          comment?: string | null;
+          created_at?: string;
+        },
+        {
+          id?: string;
+          profile_id?: string;
+          event_type?: AccountApprovalEventType;
+          actor_id?: string | null;
+          comment?: string | null;
+          created_at?: string;
+        },
+        [
+          Relationship<
+            "account_approval_events_profile_id_fkey",
+            ["profile_id"],
+            false,
+            "profiles",
+            ["id"]
+          >,
+          Relationship<
+            "account_approval_events_actor_id_fkey",
+            ["actor_id"],
+            false,
+            "profiles",
+            ["id"]
+          >,
+        ]
       >;
       user_goals: TableDefinition<
         {
@@ -419,6 +481,22 @@ export type Database = {
       get_dashboard_summary: {
         Args: Record<string, never>;
         Returns: Json;
+      };
+      is_current_user_approved: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      is_current_user_admin: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      review_account_request: {
+        Args: {
+          p_profile_id: string;
+          p_decision: "approved" | "rejected";
+          p_comment?: string | null;
+        };
+        Returns: undefined;
       };
     };
     Enums: {

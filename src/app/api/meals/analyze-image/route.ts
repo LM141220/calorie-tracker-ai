@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { AIConfigurationError, createAIProvider } from "@/services/ai/index";
 import { imagePathInputSchema } from "@/validators/meals";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentAccountAccess } from "@/lib/auth/account-access";
 
 export const runtime = "nodejs";
 
@@ -48,15 +49,18 @@ function detectImageMime(bytes: Uint8Array): SupportedImageMime | null {
 
 export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const access = await getCurrentAccountAccess(supabase);
 
-  if (authError || !user) {
+  if (!access.user) {
     return NextResponse.json(
       { error: "Authentification requise." },
       { status: 401 },
+    );
+  }
+  if (access.approvalStatus !== "approved") {
+    return NextResponse.json(
+      { error: "Votre compte doit être approuvé pour utiliser Lumo." },
+      { status: 403 },
     );
   }
 
@@ -79,7 +83,7 @@ export async function POST(request: NextRequest) {
   }
 
   const [ownerId] = parsed.data.imagePath.split("/");
-  if (ownerId !== user.id) {
+  if (ownerId !== access.user.id) {
     return NextResponse.json({ error: "Image inaccessible." }, { status: 403 });
   }
 
