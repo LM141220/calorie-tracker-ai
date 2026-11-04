@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      target: development
+    init: true
+    ports:
+      - "3000:3000"
+    env_file:
+      - path: .env.local
+        required: false
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - next_build:/app/.next
+
+volumes:
+  next_build:
