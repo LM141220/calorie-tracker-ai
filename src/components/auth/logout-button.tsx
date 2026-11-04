@@ -4,8 +4,7 @@ import { useTransition } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { logoutAction } from "@/features/auth/actions";
-
-const PRIVATE_CACHE_NAME = "calorie-tracker-ai-private-pages";
+import { clearPrivatePageCaches } from "@/lib/pwa/private-page-cache";
 
 export function LogoutButton() {
   const [isPending, startTransition] = useTransition();
@@ -15,9 +14,7 @@ export function LogoutButton() {
     startTransition(async () => {
       queryClient.clear();
       try {
-        if ("caches" in window) {
-          await caches.delete(PRIVATE_CACHE_NAME);
-        }
+        await clearPrivatePageCaches();
       } catch (error: unknown) {
         console.error(
           "Could not clear private offline cache before logout.",

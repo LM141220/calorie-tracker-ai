@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export const dynamic = "force-static";
 
 export default function OfflinePage() {
@@ -11,23 +9,9 @@ export default function OfflinePage() {
           Connexion indisponible
         </h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          Cette page n’est pas encore disponible hors ligne. Reconnectez-vous
-          pour actualiser vos données ou ouvrez une page déjà consultée.
+          Les pages de compte et les données personnelles nécessitent une
+          connexion. Reconnectez-vous pour continuer.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-input px-4 text-sm font-medium hover:bg-accent"
-            href="/dashboard"
-          >
-            Dashboard
-          </Link>
-          <Link
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-input px-4 text-sm font-medium hover:bg-accent"
-            href="/history"
-          >
-            Historique
-          </Link>
-        </div>
       </section>
     </main>
   );

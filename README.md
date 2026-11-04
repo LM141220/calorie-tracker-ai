@@ -204,20 +204,20 @@ Supabase --> Storage[Supabase Storage]
 
 ## Technology Stack
 
-| Area | Technology |
-|--------|--------|
-| Frontend | Next.js 15, React 19, TypeScript |
-| UI | Tailwind CSS, shadcn/ui, Lucide |
-| State Management | TanStack Query |
-| Forms & Validation | React Hook Form, Zod |
-| Backend | Next.js Server Actions & Route Handlers |
-| Database | PostgreSQL (Supabase) |
-| Authentication | Supabase Auth & Google OAuth |
-| Security | Row Level Security (RLS) |
-| AI | Gemini with OpenRouter fallback |
-| Food Data | Open Food Facts |
-| PWA | next-pwa |
-| Hosting | Vercel |
+| Area               | Technology                              |
+| ------------------ | --------------------------------------- |
+| Frontend           | Next.js 15, React 19, TypeScript        |
+| UI                 | Tailwind CSS, shadcn/ui, Lucide         |
+| State Management   | TanStack Query                          |
+| Forms & Validation | React Hook Form, Zod                    |
+| Backend            | Next.js Server Actions & Route Handlers |
+| Database           | PostgreSQL (Supabase)                   |
+| Authentication     | Supabase Auth & Google OAuth            |
+| Security           | Row Level Security (RLS)                |
+| AI                 | Gemini with OpenRouter fallback         |
+| Food Data          | Open Food Facts                         |
+| PWA                | next-pwa                                |
+| Hosting            | Vercel                                  |
 
 ---
 
@@ -261,7 +261,7 @@ Supabase --> Storage[Supabase Storage]
 ## Requirements
 
 - Docker Engine with Docker Compose v2 for the quick start
-- Alternatively, Node.js 20 LTS or newer and npm for running without Docker
+- Alternatively, Node.js 22 LTS and npm for running without Docker (`nvm use` reads the pinned version)
 - A Supabase project (hosted or local); this repository does not run Supabase in Docker
 - A Gemini API key or an OpenRouter API key to use AI meal analysis
 
@@ -288,6 +288,10 @@ Open <http://localhost:3000>. The Compose service mounts the source tree and
 keeps `node_modules` and Next.js build output in container volumes, so code
 changes hot reload without replacing host files or installing Node.js locally.
 Stop the service with `Ctrl+C` or `docker compose down`.
+
+Useful shortcuts are also available: `npm run docker:up`,
+`npm run docker:down` and `npm run docker:build`. Run `npm run check` for
+TypeScript and ESLint checks.
 
 ### Environment variables
 

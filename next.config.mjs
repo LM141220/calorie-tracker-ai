@@ -14,6 +14,7 @@ const withPWA = withPWAInit({
   register: true,
   cacheOnFrontEndNav: false,
   cacheStartUrl: false,
+  dynamicStartUrl: false,
   reloadOnOnline: false,
   fallbacks: {
     document: "/offline",
@@ -21,22 +22,10 @@ const withPWA = withPWAInit({
   workboxOptions: {
     runtimeCaching: [
       {
-        urlPattern: ({ request, url }) =>
-          request.mode === "navigate" &&
-          /^\/(?:dashboard|history)\/?$/.test(url.pathname),
+        urlPattern: ({ request }) => request.mode === "navigate",
         method: "GET",
-        handler: "NetworkFirst",
-        options: {
-          cacheName: "calorie-tracker-ai-private-pages",
-          networkTimeoutSeconds: 3,
-          expiration: {
-            maxEntries: 4,
-            maxAgeSeconds: 24 * 60 * 60,
-          },
-          cacheableResponse: {
-            statuses: [200],
-          },
-        },
+        handler: "NetworkOnly",
+        options: {},
       },
     ],
   },
